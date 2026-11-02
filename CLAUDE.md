@@ -8,6 +8,9 @@ de un anuncio abierto en Wallapop o Vinted España y explica los motivos en espa
 - Backend: `cd backend && uvicorn app.main:app --reload` (puerto 8000).
 - Tests backend: `cd backend && pytest -q`. Lint: `ruff check . && mypy app`.
 - Extensión: `cd extension && npm run build`, cargar `extension/dist` en chrome://extensions.
+- Evaluación: `backend/.venv/Scripts/python scripts/evaluate.py [--llm] [--split dev|test] [-v]`
+  sobre `data/eval/listings.jsonl` (100 anuncios sintéticos, 50/50). Ajusta pesos solo con
+  `dev`; `test` se reserva para las métricas publicadas. Con `--llm` gasta cuota (caché 24 h).
 
 ## Reglas de código
 - Tipado completo (mypy estricto, TypeScript strict).
