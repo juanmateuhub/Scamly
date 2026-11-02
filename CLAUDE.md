@@ -93,8 +93,9 @@ señales que se han podido evaluar, ponderada por su confianza. Baja si falta el
 referencia, si el vendedor no es visible o si el LLM ha caído (plan B). El panel la muestra
 ("fiabilidad media: faltan datos del vendedor").
 
-**Semáforo:** 0 a 29 verde ("sin señales claras"), 30 a 59 amarillo ("revisa con cuidado"),
-60 a 100 rojo ("alto riesgo de estafa"). Los motivos se ordenan por aportación `p_i` y se
+**Semáforo:** 0 a 19 verde ("sin señales claras"), 20 a 34 amarillo ("revisa con cuidado"),
+35 a 100 rojo ("alto riesgo de estafa"). Umbrales calibrados con el split `dev` del dataset
+(el PDF proponía 30/60, pero con noisy-OR las estafas típicas suman 35–60 y no llegaban al rojo). Los motivos se ordenan por aportación `p_i` y se
 ocultan los de aportación < 3 puntos (`min_reason_points`). Los atenuantes van después, con
 `points` negativo (= `−riesgo_bruto · m_j`, lo que quitan por sí solos), y se muestran si
 `m_j ≥ 0,05` (`min_mitigator_reduction`) aunque la nota ya sea 0. Los `points` de los motivos

@@ -2,8 +2,8 @@
 # Starting values; tune them with data/eval/listings.jsonl.
 
 levels:            # lower bound of each traffic-light level (0-100)
-  amarillo: 30
-  rojo: 60
+  amarillo: 20     # calibrated on the dev split (2026-11-02): no scam left green
+  rojo: 35         # no legitimate listing reaches red on dev (max legit score 33)
 
 min_reason_points: 3         # risk reasons below this contribution are hidden in the panel
 min_mitigator_reduction: 0.05 # mitigators below this effect (fraction) are hidden

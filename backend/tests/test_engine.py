@@ -89,9 +89,19 @@ def test_adding_a_mitigator_never_raises_the_score() -> None:
 # --- traffic light ----------------------------------------------------------------
 
 
+AMARILLO, ROJO = CONFIG.levels.amarillo, CONFIG.levels.rojo
+
+
 @pytest.mark.parametrize(
     ("score", "level"),
-    [(0, "verde"), (29, "verde"), (30, "amarillo"), (59, "amarillo"), (60, "rojo"), (100, "rojo")],
+    [
+        (0, "verde"),
+        (AMARILLO - 1, "verde"),
+        (AMARILLO, "amarillo"),
+        (ROJO - 1, "amarillo"),
+        (ROJO, "rojo"),
+        (100, "rojo"),
+    ],
 )
 def test_level_thresholds(score: int, level: str) -> None:
     assert level_for(score, CONFIG.levels) == level
