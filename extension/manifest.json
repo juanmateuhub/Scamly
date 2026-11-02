@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Scamly",
+  "version": "0.1.0",
+  "description": "Puntúa el riesgo de estafa del anuncio abierto en Wallapop o Vinted y explica los motivos.",
+  "permissions": ["activeTab"],
+  "host_permissions": [
+    "https://es.wallapop.com/*",
+    "https://www.vinted.es/*"
+  ],
+  "action": {
+    "default_title": "Scamly"
+  }
+}
