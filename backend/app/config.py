@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     llm_fallback_models: str = "nvidia/nemotron-3.5-super-vl:free,google/gemma-4-26b-a4b-it:free"
     # OpenRouter only: ask models not to spend tokens "thinking" (much lower latency).
     llm_disable_reasoning: bool = True
+    # Groq-style reasoning control ("none" for Qwen 3, "low" for gpt-oss); empty = not sent.
+    llm_reasoning_effort: str = ""
 
     # LLM findings cache (hash of the listing text -> verified quotes), never full texts.
     cache_path: Path = REPO_ROOT / "backend" / ".cache" / "scamly.db"

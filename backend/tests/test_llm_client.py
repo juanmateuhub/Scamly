@@ -86,6 +86,26 @@ def test_reasoning_can_be_disabled() -> None:
     assert seen[0]["reasoning"] == {"enabled": False}
 
 
+def test_reasoning_effort_is_sent_when_set() -> None:
+    seen: list[dict[str, object]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(json.loads(request.content))
+        return ok_response("{}")
+
+    client = OpenAICompatibleClient(
+        "https://llm.test/v1",
+        "m",
+        "key",
+        timeout_s=8,
+        reasoning_effort="none",
+        http=httpx.Client(transport=httpx.MockTransport(handler)),
+    )
+    client.complete_json("system", "user")
+
+    assert seen[0]["reasoning_effort"] == "none"
+
+
 def test_no_fallback_list_by_default() -> None:
     seen: list[dict[str, object]] = []
 
@@ -97,6 +117,7 @@ def test_no_fallback_list_by_default() -> None:
 
     assert "models" not in seen[0]
     assert "reasoning" not in seen[0]
+    assert "reasoning_effort" not in seen[0]
 
 
 @pytest.mark.parametrize(

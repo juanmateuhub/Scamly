@@ -27,6 +27,7 @@ def get_llm_service() -> LlmTextService | None:
         timeout_s=settings.llm_timeout_s,
         fallback_models=settings.llm_fallback_list,
         disable_reasoning=settings.llm_disable_reasoning,
+        reasoning_effort=settings.llm_reasoning_effort,
     )
     cache = FindingsCache(settings.cache_path, ttl=timedelta(hours=settings.cache_ttl_hours))
     return LlmTextService(client, cache, model_id=settings.llm_model)

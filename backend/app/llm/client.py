@@ -28,8 +28,11 @@ class OpenAICompatibleClient:
         timeout_s: float,
         fallback_models: Sequence[str] = (),
         disable_reasoning: bool = False,
+        reasoning_effort: str = "",
         http: httpx.Client | None = None,
     ) -> None:
+        # Groq-style `reasoning_effort` ("none", "low"...); empty means not sent.
+        self._reasoning_effort = reasoning_effort
         # OpenRouter: skip "thinking" tokens; a classification does not need them and they
         # multiply latency (measured ~12 s -> ~2 s median on Nemotron).
         self._disable_reasoning = disable_reasoning
@@ -55,6 +58,8 @@ class OpenAICompatibleClient:
             payload["models"] = [self._model, *self._fallback_models]
         if self._disable_reasoning:
             payload["reasoning"] = {"enabled": False}
+        if self._reasoning_effort:
+            payload["reasoning_effort"] = self._reasoning_effort
         try:
             response = self._http.post(
                 self._url, headers=self._headers, json=payload, timeout=self._timeout

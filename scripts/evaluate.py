@@ -39,17 +39,24 @@ THRESHOLDS = {"rojo": {"rojo"}, "amarillo+": {"amarillo", "rojo"}}
 class BudgetedClient:
     """Wraps the real LLM client: counts real calls, times them and stops at a budget."""
 
-    def __init__(self, inner: OpenAICompatibleClient, budget: int) -> None:
+    def __init__(self, inner: OpenAICompatibleClient, budget: int, delay_s: float) -> None:
         self.inner = inner
         self.budget = budget
+        self.delay_s = delay_s  # pause between real calls (provider tokens-per-minute limit)
         self.latencies: list[float] = []
+        self.failures = 0
 
     def complete_json(self, system: str, user: str) -> str:
         if len(self.latencies) >= self.budget:
             raise LLMError("call budget exhausted")
+        if self.latencies:
+            time.sleep(self.delay_s)
         start = time.perf_counter()
         try:
             return self.inner.complete_json(system, user)
+        except LLMError:
+            self.failures += 1
+            raise
         finally:
             self.latencies.append(time.perf_counter() - start)
 
@@ -118,6 +125,9 @@ def main() -> None:
     parser.add_argument("--split", choices=["all", "dev", "test"], default="all")
     parser.add_argument("--llm", action="store_true", help="also evaluate rules + LLM")
     parser.add_argument("--max-llm-calls", type=int, default=40, help="real LLM calls per run")
+    parser.add_argument(
+        "--delay-s", type=float, default=0.0, help="pause between real LLM calls (rate limits)"
+    )
     parser.add_argument("-v", "--verbose", action="store_true", help="list misclassified items")
     args = parser.parse_args()
 
@@ -144,8 +154,10 @@ def main() -> None:
                 timeout_s=settings.llm_timeout_s,
                 fallback_models=settings.llm_fallback_list,
                 disable_reasoning=settings.llm_disable_reasoning,
+                reasoning_effort=settings.llm_reasoning_effort,
             ),
             budget=args.max_llm_calls,
+            delay_s=args.delay_s,
         )
         cache = FindingsCache(settings.cache_path, ttl=timedelta(hours=settings.cache_ttl_hours))
         service = LlmTextService(budgeted, cache, model_id=settings.llm_model)
