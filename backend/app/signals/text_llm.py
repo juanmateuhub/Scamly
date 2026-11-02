@@ -34,12 +34,14 @@ Los teléfonos y emails se han sustituido por [TELEFONO] y [EMAIL].
 
 Detecta solo estas señales:
 - pago_fuera_app: pide pagar fuera de la plataforma (Bizum, transferencia, PayPal amigos, \
-ingreso en cuenta...) sin la protección de la app.
+ingreso en cuenta...) sin la protección de la app. Pagar en mano (efectivo o Bizum) al \
+recoger el producto en persona NO cuenta.
 - contacto_externo: intenta llevar la conversación fuera de la app (teléfono, email, \
 WhatsApp, Telegram, redes sociales).
 - urgencia: mete prisa para que el comprador no piense (viaje, "el primero que pague", "hoy mismo").
-- texto_generico: la descripción no da ningún detalle concreto del producto (estado, \
-uso, accesorios, motivo de venta) o parece copiada.
+- texto_generico: la descripción no da NINGÚN dato concreto del producto (estado, uso, \
+medidas, accesorios, defectos, motivo de venta) o parece copiada. Una descripción breve \
+con algún dato concreto NO es genérica. Cita la frase vacía de la descripción, nunca el título.
 
 Para cada señal detectada, cita la frase exacta del anuncio que la justifica, copiada literalmente.
 Si no hay pruebas en el texto, devuelve la señal con "detectado": false y "cita": null. No inventes.

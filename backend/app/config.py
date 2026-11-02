@@ -18,12 +18,20 @@ class Settings(BaseSettings):
         default=SecretStr(""), validation_alias=AliasChoices("LLM_API_KEY", "OPENROUTER_API_KEY")
     )
     llm_timeout_s: float = 8.0
+    # Comma-separated OpenRouter fallbacks, tried in order if the primary model is unavailable.
+    llm_fallback_models: str = "nvidia/nemotron-3.5-super-vl:free,google/gemma-4-26b-a4b-it:free"
+    # OpenRouter only: ask models not to spend tokens "thinking" (much lower latency).
+    llm_disable_reasoning: bool = True
 
     # LLM findings cache (hash of the listing text -> verified quotes), never full texts.
     cache_path: Path = REPO_ROOT / "backend" / ".cache" / "scamly.db"
     cache_ttl_hours: float = 24.0
 
     extension_id: str = ""
+
+    @property
+    def llm_fallback_list(self) -> list[str]:
+        return [m.strip() for m in self.llm_fallback_models.split(",") if m.strip()]
 
     @property
     def llm_enabled(self) -> bool:

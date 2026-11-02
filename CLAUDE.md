@@ -124,6 +124,13 @@ calcula el motor de reglas.
 sin créditos). Un único cliente compatible con la API de OpenAI (`app/llm/client.py`), así que
 cambiar a Ollama (`http://localhost:11434/v1`), Groq o Mistral es solo editar `LLM_BASE_URL`,
 `LLM_MODEL` y `LLM_API_KEY` en `.env`. Sin `LLM_API_KEY` el backend funciona solo con reglas.
+- `LLM_FALLBACK_MODELS` (solo OpenRouter): si Gemma está saturada en el pool gratuito
+  compartido de Google (error 429 `upstream_provider_shared_pool`, frecuente), OpenRouter pasa a
+  `nvidia/nemotron-3.5-super-vl:free` y luego a `google/gemma-4-26b-a4b-it:free`. Una sola petición.
+- `LLM_DISABLE_REASONING=true` (solo OpenRouter): sin tokens de "razonamiento". Medido el
+  2026-11-02 con 10 anuncios en Nemotron: mediana 12,4 s → 1,2 s (máx. 2,1 s), misma calidad.
+- Prueba real (10 anuncios inventados): 11/11 señales esperadas, 0 citas inventadas, resistió
+  el prompt injection; `texto_generico` sale de más (≤ 7 puntos) y se ajustará con el dataset.
 
 **Cómo se combina con las reglas** (`combine_text_signals`):
 - LLM y reglas detectan la señal → intensidad 1, confianza `both` (1,0).

@@ -45,6 +45,60 @@ def test_sends_deterministic_json_request() -> None:
     ]
 
 
+def test_fallback_models_are_sent_after_the_primary() -> None:
+    seen: list[dict[str, object]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(json.loads(request.content))
+        return ok_response("{}")
+
+    client = OpenAICompatibleClient(
+        "https://llm.test/v1",
+        "primary",
+        "key",
+        timeout_s=8,
+        fallback_models=["backup-1", "backup-2"],
+        http=httpx.Client(transport=httpx.MockTransport(handler)),
+    )
+    client.complete_json("system", "user")
+
+    assert seen[0]["model"] == "primary"
+    assert seen[0]["models"] == ["primary", "backup-1", "backup-2"]
+
+
+def test_reasoning_can_be_disabled() -> None:
+    seen: list[dict[str, object]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(json.loads(request.content))
+        return ok_response("{}")
+
+    client = OpenAICompatibleClient(
+        "https://llm.test/v1",
+        "m",
+        "key",
+        timeout_s=8,
+        disable_reasoning=True,
+        http=httpx.Client(transport=httpx.MockTransport(handler)),
+    )
+    client.complete_json("system", "user")
+
+    assert seen[0]["reasoning"] == {"enabled": False}
+
+
+def test_no_fallback_list_by_default() -> None:
+    seen: list[dict[str, object]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(json.loads(request.content))
+        return ok_response("{}")
+
+    make_client(httpx.MockTransport(handler)).complete_json("system", "user")
+
+    assert "models" not in seen[0]
+    assert "reasoning" not in seen[0]
+
+
 @pytest.mark.parametrize(
     "response",
     [
