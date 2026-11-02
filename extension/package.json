@@ -7,11 +7,15 @@
   "license": "MIT",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && vite build && vite build -c vite.content.config.ts",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "dev": "vite --port 5173 --strictPort --open /dev/panel-preview.html"
   },
   "devDependencies": {
     "@types/chrome": "0.3.7",
+    "@types/node": "26.6.6",
+    "happy-dom": "21.0.4",
     "typescript": "7.0.2",
     "vite": "8.3.5",
     "vitest": "5.1.0"

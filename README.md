@@ -27,6 +27,17 @@ npm install
 npm test
 ```
 
+## Probar la extensión
+
+1. Arranca el backend: `cd backend && .venv/Scripts/python -m uvicorn app.main:app --reload`.
+2. Compila la extensión: `cd extension && npm install && npm run build`.
+3. En Chrome abre `chrome://extensions`, activa **Modo de desarrollador**, pulsa
+   **Cargar descomprimida** y elige la carpeta `extension/dist`.
+4. Abre un anuncio de Wallapop o Vinted y pulsa el icono de Scamly.
+
+Opcional: copia el ID que muestra Chrome en `EXTENSION_ID` del `.env` para que el backend
+solo acepte peticiones de tu extensión.
+
 ## Licencia
 
 MIT

@@ -1,8 +1,31 @@
-import { defineConfig } from "vitest/config";
+import { copyFileSync } from "node:fs";
+import { resolve } from "node:path";
 
-// Build entries (content scripts, background, panel) are added in phase 6.
+import { defineConfig, type Plugin } from "vitest/config";
+
+// Copies manifest.json into dist so `extension/dist` can be loaded unpacked in Chrome.
+function copyManifest(): Plugin {
+  return {
+    name: "copy-manifest",
+    apply: "build",
+    writeBundle() {
+      const root = import.meta.dirname;
+      copyFileSync(resolve(root, "manifest.json"), resolve(root, "dist/manifest.json"));
+    },
+  };
+}
+
+// Popup build (ES modules). The content script is built separately as one classic script
+// (vite.content.config.ts), because chrome.scripting.executeScript cannot load ES imports.
 export default defineConfig({
+  plugins: [copyManifest()],
+  build: {
+    outDir: "dist",
+    emptyOutDir: true,
+    rollupOptions: { input: { popup: resolve(import.meta.dirname, "popup.html") } },
+  },
   test: {
     include: ["tests/**/*.test.ts"],
+    environment: "happy-dom",
   },
 });

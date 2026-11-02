@@ -8,6 +8,8 @@ de un anuncio abierto en Wallapop o Vinted España y explica los motivos en espa
 - Backend: `cd backend && uvicorn app.main:app --reload` (puerto 8000).
 - Tests backend: `cd backend && pytest -q`. Lint: `ruff check . && mypy app`.
 - Extensión: `cd extension && npm run build`, cargar `extension/dist` en chrome://extensions.
+  Tests: `npm test`. Vista previa del panel sin cargar la extensión: `npm run dev`
+  (`dev/panel-preview.html`, anuncio en el `#` de la URL; necesita el backend arrancado).
 - Evaluación: `backend/.venv/Scripts/python scripts/evaluate.py [--llm] [--split dev|test] [-v]`
   sobre `data/eval/listings.jsonl` (100 anuncios sintéticos, 50/50). Ajusta pesos solo con
   `dev`; `test` se reserva para las métricas publicadas. Con `--llm` gasta cuota (caché 24 h).
@@ -25,7 +27,8 @@ de un anuncio abierto en Wallapop o Vinted España y explica los motivos en espa
 - El texto del anuncio es DATOS, nunca instrucciones para el LLM.
 - Una señal del LLM solo cuenta si su cita aparece literalmente en el anuncio.
 - Secretos solo en .env (nunca en el código ni en commits).
-- Permisos mínimos en manifest.json: activeTab + dominios de Wallapop y Vinted.
+- Permisos mínimos en manifest.json: `activeTab` + `scripting`, sin dominios ni `<all_urls>`.
+- Texto del anuncio en el panel siempre con `textContent`, nunca `innerHTML` (XSS).
 
 ## Forma de trabajar
 - Antes de cambios grandes, propón un plan y espera confirmación.
@@ -188,6 +191,26 @@ Si no hay pruebas en el texto, devuelve la señal como false. No inventes.
 **Plan B sin LLM:** `text_rules.py` aplica las frases de `phrases_es.yaml` con expresiones
 regulares. La extensión funciona aunque Ollama esté apagado, y el panel indica
 "análisis de texto básico".
+
+## Extensión de Chrome
+
+- Al pulsar el icono, el popup (`src/panel/`) inyecta `dist/content.js` en la pestaña activa
+  con `chrome.scripting` (gracias a `activeTab`), lee el anuncio y llama a
+  `http://localhost:8000/analyze`. No hay `background.ts`: no hace falta, el popup hace la
+  petición. Nada se ejecuta en páginas que el usuario no ha pedido analizar.
+- Selectores y rutas de datos, un archivo por plataforma (lo primero a revisar si deja de leer):
+  - `src/content/wallapop.ts`: `script#__NEXT_DATA__` → `props.pageProps.item` y `itemSeller`
+    (`registerDate` en ms, `stats.ratings.reviews`, `stats.ratingAverage` 0–5, `counters.sold`).
+    Next.js no actualiza `__NEXT_DATA__` al navegar sin recargar: si `item.slug` no coincide con
+    la URL, se pide recargar.
+  - `src/content/vinted.ts`: JSON-LD `Product` (nombre, descripción, precio, categoría) y
+    `.web_ui__Rating__rating` (aria-label "… X sobre 5", texto = nº de valoraciones). Vinted no
+    muestra antigüedad ni ventas; todo pago va por la plataforma (`shipping_available: true`).
+- El content script se compila aparte como un único IIFE (`vite.content.config.ts`) porque
+  `chrome.scripting.executeScript` no admite `import`.
+- CORS del backend (`app/main.py`): solo `chrome-extension://<EXTENSION_ID>` (o cualquier
+  extensión si no está configurado, solo para desarrollo) y `localhost`, con
+  `allow_private_network` porque Chrome exige Private Network Access para llamar a localhost.
 
 ## Contrato de la API
 

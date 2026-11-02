@@ -29,11 +29,11 @@ products:
   - name: PS5 Digital
     category: consolas
     price_eur: 330
-    aliases: [ps5 digital, playstation 5 digital]
+    aliases: [ps5 digital, playstation 5 digital, play 5 digital, play5 digital]
   - name: PS5
     category: consolas
     price_eur: 400
-    aliases: [ps5, playstation 5]
+    aliases: [ps5, playstation 5, play 5, play5]
     exclude: [digital, pro, mando, juego, "juegos ps5", "juegos de ps5", "juegos para ps5"]
   - name: Nintendo Switch 2
     category: consolas
