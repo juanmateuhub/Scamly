@@ -246,12 +246,12 @@ visibles del anuncio, sin cookies ni datos del usuario.
   "level": "rojo",
   "confidence": 0.93,
   "reasons": [
-    {"signal": "pago_fuera_app", "points": 36.0, "intensity": 1.0, "confidence": 0.9, "message": "Pide pagar fuera de la plataforma, sin protección", "evidence": "solo Bizum"},
-    {"signal": "precio_anomalo", "points": 31.2, "intensity": 0.78, "confidence": 1.0, "message": "Precio un 64 % por debajo de lo habitual", "evidence": "180 € frente a 500 €"},
-    {"signal": "contacto_externo", "points": 22.5, "intensity": 1.0, "confidence": 0.9, "message": "Intenta llevar la conversación fuera de la app", "evidence": "escríbeme por WhatsApp"},
-    {"signal": "cuenta_nueva", "points": 13.6, "intensity": 0.9, "confidence": 1.0, "message": "La cuenta se creó hace 3 días", "evidence": "3 días"},
-    {"signal": "sin_historial", "points": 10.0, "intensity": 1.0, "confidence": 1.0, "message": "El vendedor apenas tiene valoraciones", "evidence": "0 valoraciones, 0 ventas"},
-    {"signal": "urgencia", "points": 9.0, "intensity": 1.0, "confidence": 0.9, "message": "Mete prisa, táctica típica de estafa", "evidence": "Me voy del país"}
+    {"signal": "pago_fuera_app", "kind": "risk", "points": 36.0, "intensity": 1.0, "confidence": 0.9, "message": "Pide pagar fuera de la plataforma, sin protección", "evidence": "solo Bizum"},
+    {"signal": "precio_anomalo", "kind": "risk", "points": 31.2, "intensity": 0.78, "confidence": 1.0, "message": "Precio un 64 % por debajo de lo habitual", "evidence": "180 € frente a 500 €"},
+    {"signal": "contacto_externo", "kind": "risk", "points": 22.5, "intensity": 1.0, "confidence": 0.9, "message": "Intenta llevar la conversación fuera de la app", "evidence": "escríbeme por WhatsApp"},
+    {"signal": "cuenta_nueva", "kind": "risk", "points": 13.6, "intensity": 0.9, "confidence": 1.0, "message": "La cuenta se creó hace 3 días", "evidence": "3 días"},
+    {"signal": "sin_historial", "kind": "risk", "points": 10.0, "intensity": 1.0, "confidence": 1.0, "message": "El vendedor apenas tiene valoraciones", "evidence": "0 valoraciones, 0 ventas"},
+    {"signal": "urgencia", "kind": "risk", "points": 9.0, "intensity": 1.0, "confidence": 0.9, "message": "Mete prisa, táctica típica de estafa", "evidence": "Me voy del país"}
   ],
   "unavailable_signals": [],
   "text_analysis": "llm",

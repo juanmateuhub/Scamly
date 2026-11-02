@@ -11,6 +11,7 @@ const ANALYSIS: Analysis = {
   reasons: [
     {
       signal: "pago_fuera_app",
+      kind: "risk",
       points: 36,
       intensity: 1,
       confidence: 0.9,
@@ -19,6 +20,7 @@ const ANALYSIS: Analysis = {
     },
     {
       signal: "envio_protegido",
+      kind: "mitigator",
       points: -5.6,
       intensity: 1,
       confidence: 1,
@@ -77,6 +79,15 @@ describe("renderAnalysis", () => {
 
     expect(root.querySelector("img")).toBeNull();
     expect(root.textContent).toContain('<img src=x onerror="alert(1)">');
+  });
+
+  it("shows a check for a mitigator with nothing to subtract (never +-0)", () => {
+    const mitigator = { ...ANALYSIS.reasons[1]!, points: -0 };
+
+    renderAnalysis(root, { ...ANALYSIS, risk_score: 0, level: "verde", reasons: [mitigator] });
+
+    expect(root.querySelector(".reason.mitigator .points")?.textContent).toBe("✓");
+    expect(root.textContent).not.toContain("-0");
   });
 
   it("shows a calm message when there are no reasons", () => {

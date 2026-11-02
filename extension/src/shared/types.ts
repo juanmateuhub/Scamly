@@ -33,6 +33,7 @@ export type RiskLevel = "verde" | "amarillo" | "rojo";
 
 export interface Reason {
   signal: string;
+  kind: "risk" | "mitigator";
   points: number;
   intensity: number;
   confidence: number;

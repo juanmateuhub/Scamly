@@ -34,14 +34,17 @@ function confidenceLabel(confidence: number): string {
 
 const NUMBER = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 1 });
 
-function formatPoints(points: number): string {
-  return points < 0 ? `−${NUMBER.format(Math.abs(points))}` : `+${NUMBER.format(points)}`;
+function formatPoints(reason: Reason): string {
+  const value = NUMBER.format(Math.abs(reason.points));
+  if (reason.kind === "risk") return `+${value}`;
+  // A mitigator on a listing with no risk has nothing to subtract: show a check instead of −0.
+  return value === "0" ? "✓" : `−${value}`;
 }
 
 function reasonItem(reason: Reason): HTMLLIElement {
-  const item = el("li", reason.points < 0 ? "reason mitigator" : "reason");
+  const item = el("li", reason.kind === "mitigator" ? "reason mitigator" : "reason");
   item.append(
-    el("span", "points", formatPoints(reason.points)),
+    el("span", "points", formatPoints(reason)),
     el("span", "message", reason.message),
   );
   if (reason.evidence) item.append(el("span", "evidence", `«${reason.evidence}»`));

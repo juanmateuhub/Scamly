@@ -33,7 +33,8 @@ def level_for(score: int, levels: LevelsConfig) -> RiskLevel:
 def _reason(result: SignalResult, points: float) -> Reason:
     return Reason(
         signal=result.signal,
-        points=round(points, 1),
+        kind=result.kind,
+        points=round(points, 1) + 0.0,  # + 0.0 turns -0.0 into 0.0
         intensity=round(result.intensity, 2),
         confidence=round(result.confidence, 2),
         message=result.message,

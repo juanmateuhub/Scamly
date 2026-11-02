@@ -124,7 +124,15 @@ def test_mitigator_reasons_show_negative_points_after_risks() -> None:
     reasons = combine(signals, [], CONFIG).reasons
 
     assert [r.signal for r in reasons] == ["a", "buen_vendedor"]
+    assert [r.kind for r in reasons] == ["risk", "mitigator"]
     assert math.isclose(reasons[1].points, -10.0)  # removes 20 % of 50 points
+
+
+def test_mitigator_with_nothing_to_reduce_shows_zero_not_negative_zero() -> None:
+    reasons = combine([mitigator("buen_vendedor", 0.3)], [], CONFIG).reasons
+
+    assert reasons[0].kind == "mitigator"
+    assert str(reasons[0].points) == "0.0"
 
 
 def test_reason_values_are_rounded() -> None:
