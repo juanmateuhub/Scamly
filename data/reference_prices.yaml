@@ -25,6 +25,21 @@ defect_phrases:        # in title OR description: a defect explains a low price
   - tiene un fallo
   - por eso el precio
 
+variant_words:         # a comparable must have exactly the same ones as the listing
+  - pro
+  - max
+  - plus
+  - mini
+  - ultra
+  - air
+  - digital
+  - lite
+  - oled
+  - lcd
+  - fe
+  - 16e
+  - 17e
+
 products:
   - name: PS5 Digital
     category: consolas

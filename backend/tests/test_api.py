@@ -144,3 +144,43 @@ def test_analyze_rejects_missing_required_field(
     response = client.post("/analyze", json=ps5_listing)
 
     assert response.status_code == 422
+
+
+def test_comparables_are_validated(client: TestClient, ps5_listing: dict[str, Any]) -> None:
+    ps5_listing["comparables"] = [{"title": "PS5", "price_eur": -5}]
+
+    assert client.post("/analyze", json=ps5_listing).status_code == 422
+
+
+def test_comparables_are_limited(client: TestClient, ps5_listing: dict[str, Any]) -> None:
+    ps5_listing["comparables"] = [{"title": "PS5", "price_eur": 400}] * 61
+
+    assert client.post("/analyze", json=ps5_listing).status_code == 422
+
+
+def test_price_check_is_reported_even_when_the_price_is_normal(
+    client: TestClient, ps5_listing: dict[str, Any]
+) -> None:
+    ps5_listing.update(
+        title="iPhone 17",
+        price_eur=720,
+        comparables=[
+            {"title": "iPhone 17 256GB", "price_eur": p} for p in (680, 700, 720, 750, 780)
+        ],
+    )
+
+    body = client.post("/analyze", json=ps5_listing).json()
+
+    assert "precio_anomalo" not in {r["signal"] for r in body["reasons"]}
+    assert body["price_check"] == {
+        "message": "Precio en línea con lo habitual",
+        "evidence": "720 € frente a 720 € (mediana de 5 anuncios similares)",
+    }
+
+
+def test_price_check_is_null_without_reference(
+    client: TestClient, ps5_listing: dict[str, Any]
+) -> None:
+    ps5_listing.update(title="Bicicleta de montaña")
+
+    assert client.post("/analyze", json=ps5_listing).json()["price_check"] is None

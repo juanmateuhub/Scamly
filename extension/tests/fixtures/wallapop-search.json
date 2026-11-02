@@ -1,0 +1,15 @@
+{
+  "data": {
+    "section": {
+      "type": "organic_search_results",
+      "items": [
+        { "id": "own111", "title": "iPhone 17", "price": { "amount": 700, "currency": "EUR" }, "taxonomy": [{ "id": 24200 }, { "id": 24201 }, { "id": 9447 }] },
+        { "id": "a1", "title": "iPhone 17 256GB", "price": { "amount": 760, "currency": "EUR" }, "taxonomy": [{ "id": 24200 }, { "id": 24201 }, { "id": 9447 }] },
+        { "id": "a2", "title": "iPhone 17 Pro 512gb", "price": { "amount": 949.99, "currency": "EUR" }, "taxonomy": [{ "id": 24200 }, { "id": 24201 }, { "id": 9447 }] },
+        { "id": "a3", "title": "Funda silicona iPhone 17", "price": { "amount": 10, "currency": "EUR" }, "taxonomy": [{ "id": 24200 }, { "id": 24201 }, { "id": 9450 }] },
+        { "id": "a4", "title": "iPhone 17 verde", "price": { "amount": 680, "currency": "EUR" }, "taxonomy": [{ "id": 24200 }, { "id": 24201 }, { "id": 9447 }] },
+        { "id": "a5", "title": "iPhone 17 sin precio", "taxonomy": [{ "id": 9447 }] }
+      ]
+    }
+  }
+}

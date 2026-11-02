@@ -30,6 +30,13 @@ class Seller(_StrictModel):
     sales_count: Count | None = None
 
 
+class Comparable(_StrictModel):
+    """Another listing of the same product found by the extension: only title and price."""
+
+    title: Annotated[str, Field(max_length=300)]
+    price_eur: Annotated[float, Field(ge=0, allow_inf_nan=False)]
+
+
 class Listing(_StrictModel):
     platform: Platform
     listing_id: Annotated[str, Field(min_length=1, max_length=100)]
@@ -40,6 +47,7 @@ class Listing(_StrictModel):
     seller: Seller = Field(default_factory=Seller)
     shipping_available: bool = False
     image_count: Count = 0
+    comparables: Annotated[list[Comparable], Field(max_length=60)] = []
 
 
 class Reason(BaseModel):
@@ -53,11 +61,19 @@ class Reason(BaseModel):
     evidence: str
 
 
+class PriceCheck(BaseModel):
+    """What the price was compared with, shown even when the price is normal."""
+
+    message: str
+    evidence: str
+
+
 class Analysis(BaseModel):
     risk_score: Annotated[int, Field(ge=0, le=100)]
     level: RiskLevel
     confidence: Unit
     reasons: list[Reason]
+    price_check: PriceCheck | None = None
     unavailable_signals: list[str]
     text_analysis: TextAnalysis
     analyzed_at: datetime

@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from app import __version__
-from app.models.listing import Analysis, Listing
+from app.models.listing import Analysis, Listing, PriceCheck
 from app.rules.loader import PhraseRules, ReferencePrices, ScoringConfig
 from app.scoring.engine import combine
 from app.signals.base import SignalResult
@@ -50,11 +50,13 @@ def analyze_listing(
     unavailable = [name for name, result in optional.items() if result is None]
 
     score = combine(results, unavailable, config)
+    price = optional["precio_anomalo"]
     return Analysis(
         risk_score=score.risk_score,
         level=score.level,
         confidence=score.confidence,
         reasons=score.reasons,
+        price_check=PriceCheck(message=price.message, evidence=price.evidence) if price else None,
         unavailable_signals=score.unavailable_signals,
         text_analysis="basico" if llm_findings is None else "llm",
         analyzed_at=now,

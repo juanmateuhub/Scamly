@@ -20,6 +20,10 @@ signals:           # risk signals: points = weight * intensity * confidence
     ratio_max_risk: 0.25     # price / reference at or below this -> intensity 1
     confidence_product: 1.0  # matched a specific product
     confidence_category: 0.6 # only matched a category average
+    comparables:             # same product listed now, found by the extension's search
+      min_count: 5           # fewer similar listings -> reference table instead
+      full_count: 15         # similar listings for full confidence
+      max_confidence: 0.9    # times (1 - IQR / median): scattered prices are trusted less
   cuenta_nueva:
     weight: 15
     decay_days: 30           # intensity = exp(-days / decay_days)

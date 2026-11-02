@@ -31,12 +31,19 @@ class _Rules(BaseModel):
 # --- scoring.yaml ---------------------------------------------------------------
 
 
+class ComparablesConfig(_Rules):
+    min_count: Annotated[int, Field(ge=1)]  # fewer similar listings -> use the reference table
+    full_count: Positive  # similar listings needed for full confidence
+    max_confidence: Unit  # live listings may include scams and variants: never fully trusted
+
+
 class PriceConfig(_Rules):
     weight: Weight
     ratio_no_risk: Unit
     ratio_max_risk: Unit
     confidence_product: Unit
     confidence_category: Unit
+    comparables: ComparablesConfig
 
     @model_validator(mode="after")
     def _check_ratios(self) -> Self:
@@ -210,6 +217,8 @@ class ReferencePrices(_Rules):
     skip_words: list[str] = []
     # Phrases in the title OR description that explain a low price (broken, defect).
     defect_phrases: list[str] = []
+    # Words that make a different model ("pro", "max"...): comparables must share the same set.
+    variant_words: list[str] = []
     # Ordered: the first product whose alias matches (and no exclude word) wins.
     products: list[ReferenceProduct]
     # Fallback average price per category, used with lower confidence.

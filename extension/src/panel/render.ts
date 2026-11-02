@@ -71,6 +71,16 @@ export function renderAnalysis(root: HTMLElement, analysis: Analysis): void {
     root.append(list);
   }
 
+  const priceShown = analysis.reasons.some((reason) => reason.signal === "precio_anomalo");
+  if (analysis.price_check && !priceShown) {
+    const price = el("p", "price-check");
+    price.append(
+      el("span", "message", analysis.price_check.message),
+      el("span", "evidence", analysis.price_check.evidence),
+    );
+    root.append(price);
+  }
+
   const notes = analysis.unavailable_signals
     .map((signal) => UNAVAILABLE_NOTES[signal])
     .filter((note): note is string => note !== undefined);

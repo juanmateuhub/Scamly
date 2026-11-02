@@ -90,6 +90,30 @@ describe("renderAnalysis", () => {
     expect(root.textContent).not.toContain("-0");
   });
 
+  it("always says what the price was compared with", () => {
+    renderAnalysis(root, {
+      ...ANALYSIS,
+      price_check: {
+        message: "Precio en línea con lo habitual",
+        evidence: "800 € frente a 720 € (mediana de 17 anuncios similares)",
+      },
+    });
+
+    expect(root.querySelector(".price-check")?.textContent).toContain("mediana de 17 anuncios similares");
+  });
+
+  it("does not repeat the price when it is already a reason", () => {
+    const priceReason = { ...ANALYSIS.reasons[0]!, signal: "precio_anomalo" };
+
+    renderAnalysis(root, {
+      ...ANALYSIS,
+      reasons: [priceReason],
+      price_check: { message: "Precio un 50 % por debajo de lo habitual", evidence: "x" },
+    });
+
+    expect(root.querySelector(".price-check")).toBeNull();
+  });
+
   it("shows a calm message when there are no reasons", () => {
     renderAnalysis(root, { ...ANALYSIS, risk_score: 3, level: "verde", reasons: [] });
 

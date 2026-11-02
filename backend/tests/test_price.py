@@ -3,6 +3,7 @@ import math
 import pytest
 
 from app.rules.loader import (
+    ComparablesConfig,
     PriceConfig,
     ReferencePrices,
     ReferenceProduct,
@@ -19,10 +20,12 @@ CONFIG = PriceConfig(
     ratio_max_risk=0.25,
     confidence_product=1.0,
     confidence_category=0.6,
+    comparables=ComparablesConfig(min_count=5, full_count=15, max_confidence=0.9),
 )
 
 REFERENCE = ReferencePrices(
     skip_words=["funda", "busco"],
+    variant_words=["pro", "max", "plus", "digital"],
     defect_phrases=["para piezas", "pantalla rota", "no carga"],
     products=[
         ReferenceProduct(
@@ -193,3 +196,98 @@ def test_shipped_rule_files_are_valid() -> None:
     assert (
         config.signals.precio_anomalo.ratio_no_risk > config.signals.precio_anomalo.ratio_max_risk
     )
+
+
+# --- comparables: the same product listed right now --------------------------------
+
+
+def comparables(*prices: float, title: str = "iPhone 17 256GB") -> list[dict[str, object]]:
+    return [{"title": title, "price_eur": price} for price in prices]
+
+
+def comparable_signal(
+    title: str, price: float, items: list[dict[str, object]]
+) -> SignalResult | None:
+    listing = make_listing(title=title, price_eur=price, comparables=items)
+    return price_signal(listing, REFERENCE, CONFIG)
+
+
+def test_median_of_comparables_is_the_reference() -> None:
+    items = comparables(600, 650, 700, 720, 750, 800, 900)
+
+    result = comparable_signal("iPhone 17", 350, items)
+
+    assert result is not None
+    assert result.evidence == "350 € frente a 720 € (mediana de 7 anuncios similares)"
+    assert math.isclose(result.intensity, (0.75 - 350 / 720) / 0.5)
+
+
+def test_comparables_win_over_the_reference_table() -> None:
+    # The table says 500 for "iPhone 15"; live listings say 300.
+    result = comparable_signal("iPhone 15", 280, comparables(*[300] * 6, title="iPhone 15 128GB"))
+
+    assert result is not None
+    assert result.evidence.endswith("(mediana de 6 anuncios similares)")
+    assert result.intensity == 0
+
+
+def test_too_few_comparables_fall_back_to_the_table() -> None:
+    result = comparable_signal("iPhone 15", 250, comparables(300, 310, title="iPhone 15"))
+
+    assert result is not None
+    assert result.evidence == "250 € frente a 500 € (iPhone 15)"
+
+
+def test_too_few_comparables_and_unknown_product_returns_none() -> None:
+    assert comparable_signal("Cámara Sony A7 IV", 400, comparables(1200, 1300)) is None
+
+
+def test_other_variants_accessories_and_defects_are_ignored() -> None:
+    items = [
+        *comparables(700, 710, 720, 730, 740),
+        *comparables(1100, 1150, title="iPhone 17 Pro 256GB"),  # other variant
+        *comparables(1300, title="iPhone 17 Pro Max"),
+        *comparables(10, 12, title="Funda iPhone 17"),  # accessory
+        *comparables(150, title="iPhone 17 pantalla rota"),  # defect
+        *comparables(0, title="iPhone 17"),  # no price
+    ]
+
+    result = comparable_signal("iPhone 17", 700, items)
+
+    assert result is not None
+    assert result.evidence == "700 € frente a 720 € (mediana de 5 anuncios similares)"
+
+
+def test_a_pro_listing_only_compares_with_pro_listings() -> None:
+    items = [
+        *comparables(700, 710, 720, 730, 740),
+        *comparables(*[1100] * 5, title="iPhone 17 Pro"),
+    ]
+
+    result = comparable_signal("iPhone 17 Pro 256GB", 1000, items)
+
+    assert result is not None
+    assert result.evidence.endswith("frente a 1100 € (mediana de 5 anuncios similares)")
+
+
+@pytest.mark.parametrize(
+    ("prices", "expected"),
+    [
+        ([700] * 15, 0.9),  # many, identical prices: max confidence
+        ([700] * 5, 0.9 * 5 / 15),  # few comparables
+    ],
+)
+def test_confidence_grows_with_count(prices: list[float], expected: float) -> None:
+    result = comparable_signal("iPhone 17", 300, comparables(*prices))
+
+    assert result is not None
+    assert math.isclose(result.confidence, expected)
+
+
+def test_scattered_prices_lower_the_confidence() -> None:
+    tight = comparable_signal("iPhone 17", 300, comparables(*[690, 700, 710] * 5))
+    scattered = comparable_signal("iPhone 17", 300, comparables(*[200, 700, 1400] * 5))
+
+    assert tight is not None
+    assert scattered is not None
+    assert scattered.confidence < tight.confidence

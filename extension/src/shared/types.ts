@@ -17,6 +17,14 @@ export interface Seller {
   sales_count?: number;
 }
 
+/** Another listing of the same product: only title and price are sent to the backend. */
+export interface Comparable {
+  title: string;
+  price_eur: number;
+}
+
+export const MAX_COMPARABLES = 40;
+
 export interface ListingPayload {
   platform: Platform;
   listing_id: string;
@@ -27,6 +35,7 @@ export interface ListingPayload {
   seller: Seller;
   shipping_available: boolean;
   image_count: number;
+  comparables?: Comparable[];
 }
 
 export type RiskLevel = "verde" | "amarillo" | "rojo";
@@ -41,11 +50,17 @@ export interface Reason {
   evidence: string;
 }
 
+export interface PriceCheck {
+  message: string;
+  evidence: string;
+}
+
 export interface Analysis {
   risk_score: number;
   level: RiskLevel;
   confidence: number;
   reasons: Reason[];
+  price_check?: PriceCheck | null;
   unavailable_signals: string[];
   text_analysis: "llm" | "basico";
   analyzed_at: string;
