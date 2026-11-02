@@ -1,0 +1,185 @@
+"""Load and validate the YAML rule files: scoring weights, Spanish phrases and reference prices.
+
+All tunable numbers live in these files, never in the signal code.
+"""
+
+import re
+from functools import lru_cache
+from pathlib import Path
+from typing import Annotated, Any, Literal, Self
+
+import yaml
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+RULES_DIR = Path(__file__).parent
+REPO_ROOT = RULES_DIR.parents[2]
+SCORING_PATH = RULES_DIR / "scoring.yaml"
+PHRASES_PATH = RULES_DIR / "phrases_es.yaml"
+REFERENCE_PRICES_PATH = REPO_ROOT / "data" / "reference_prices.yaml"
+
+Unit = Annotated[float, Field(ge=0, le=1)]
+Weight = Annotated[float, Field(ge=0, le=100)]
+Positive = Annotated[float, Field(gt=0)]
+
+TextSignalName = Literal["pago_fuera_app", "contacto_externo", "urgencia"]
+
+
+class _Rules(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+
+# --- scoring.yaml ---------------------------------------------------------------
+
+
+class PriceConfig(_Rules):
+    weight: Weight
+    ratio_no_risk: Unit
+    ratio_max_risk: Unit
+    confidence_product: Unit
+    confidence_category: Unit
+
+    @model_validator(mode="after")
+    def _check_ratios(self) -> Self:
+        if self.ratio_no_risk <= self.ratio_max_risk:
+            raise ValueError("ratio_no_risk must be greater than ratio_max_risk")
+        return self
+
+
+class AccountAgeConfig(_Rules):
+    weight: Weight
+    decay_days: Positive
+
+
+class HistoryConfig(_Rules):
+    weight: Weight
+    half_count: Positive
+
+
+class TextSignalConfig(_Rules):
+    weight: Weight
+
+
+class LlmOnlySignalConfig(_Rules):
+    weight: Weight
+    confidence: Unit
+
+
+class TextConfidenceConfig(_Rules):
+    llm: Unit
+    regex: Unit
+    both: Unit
+
+
+class SellerReputationConfig(_Rules):
+    max_reduction: Unit
+    full_count: Positive
+    avg_floor: Annotated[float, Field(ge=0, le=5)]
+    avg_ceiling: Annotated[float, Field(ge=0, le=5)]
+
+    @model_validator(mode="after")
+    def _check_avg_range(self) -> Self:
+        if self.avg_ceiling <= self.avg_floor:
+            raise ValueError("avg_ceiling must be greater than avg_floor")
+        return self
+
+
+class ShippingConfig(_Rules):
+    max_reduction: Unit
+
+
+class SignalsConfig(_Rules):
+    precio_anomalo: PriceConfig
+    cuenta_nueva: AccountAgeConfig
+    sin_historial: HistoryConfig
+    pago_fuera_app: TextSignalConfig
+    contacto_externo: TextSignalConfig
+    urgencia: TextSignalConfig
+    texto_generico: LlmOnlySignalConfig
+
+    def text_weights(self) -> dict[TextSignalName, TextSignalConfig]:
+        return {
+            "pago_fuera_app": self.pago_fuera_app,
+            "contacto_externo": self.contacto_externo,
+            "urgencia": self.urgencia,
+        }
+
+
+class MitigatorsConfig(_Rules):
+    vendedor_con_historial: SellerReputationConfig
+    envio_protegido: ShippingConfig
+
+
+class LevelsConfig(_Rules):
+    amarillo: Annotated[int, Field(ge=0, le=100)]
+    rojo: Annotated[int, Field(ge=0, le=100)]
+
+
+class ScoringConfig(_Rules):
+    levels: LevelsConfig
+    min_reason_points: Annotated[float, Field(ge=0)]
+    text_confidence: TextConfidenceConfig
+    signals: SignalsConfig
+    mitigators: MitigatorsConfig
+
+
+# --- phrases_es.yaml ------------------------------------------------------------
+
+
+class Phrase(_Rules):
+    pattern: str
+    strength: Unit
+
+    @field_validator("pattern")
+    @classmethod
+    def _check_regex(cls, value: str) -> str:
+        re.compile(value)
+        return value
+
+
+class PhraseRules(_Rules):
+    # Words that cancel a match when they appear just before it in the same clause.
+    negations: frozenset[str]
+    signals: dict[TextSignalName, list[Phrase]]
+
+
+# --- reference_prices.yaml ------------------------------------------------------
+
+
+class ReferenceProduct(_Rules):
+    name: str
+    category: str
+    price_eur: Positive
+    aliases: Annotated[list[str], Field(min_length=1)]
+    exclude: list[str] = []
+
+
+class ReferencePrices(_Rules):
+    # Words in a title that explain a low price (accessory, broken item, wanted ad).
+    skip_words: list[str] = []
+    # Ordered: the first product whose alias matches (and no exclude word) wins.
+    products: list[ReferenceProduct]
+    # Fallback average price per category, used with lower confidence.
+    categories: dict[str, Positive] = {}
+
+
+# --- loaders --------------------------------------------------------------------
+
+
+def _read_yaml(path: Path) -> Any:
+    with path.open(encoding="utf-8") as file:
+        return yaml.safe_load(file)
+
+
+@lru_cache
+def load_scoring_config(path: Path = SCORING_PATH) -> ScoringConfig:
+    return ScoringConfig.model_validate(_read_yaml(path))
+
+
+@lru_cache
+def load_phrase_rules(path: Path = PHRASES_PATH) -> PhraseRules:
+    return PhraseRules.model_validate(_read_yaml(path))
+
+
+@lru_cache
+def load_reference_prices(path: Path = REFERENCE_PRICES_PATH) -> ReferencePrices:
+    return ReferencePrices.model_validate(_read_yaml(path))

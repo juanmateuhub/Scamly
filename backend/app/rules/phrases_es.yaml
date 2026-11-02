@@ -1,0 +1,58 @@
+# Spanish phrase rules for the text signals (plan B without LLM).
+# Patterns are Python regexes applied to lowercase text WITHOUT accents
+# (write "pais", not "país"). strength in [0, 1]: how explicit the phrase is.
+# Overlapping matches count once (the strongest wins); independent matches
+# combine with noisy-OR: intensity = 1 - prod(1 - strength).
+
+negations: ["no", "sin", "nunca", "nada", "ni"]   # quoted: YAML reads bare `no` as false
+
+signals:
+  pago_fuera_app:
+    - pattern: '\bsolo (?:acepto |por |con |mediante )?(?:bizum|transferencias?)\b'
+      strength: 1.0
+    - pattern: '\bpaypal (?:amigos|familia|friends)\b'
+      strength: 1.0
+    - pattern: '\bfuera de (?:la app|la aplicacion|la plataforma|wallapop|vinted)\b'
+      strength: 1.0
+    - pattern: '\b(?:pago|pagos|pagar|trato|venta) por fuera\b'
+      strength: 0.9
+    - pattern: '\b(?:western union|moneygram)\b'
+      strength: 1.0
+    - pattern: '\b(?:ingreso|ingresar|ingresas) (?:en|a) (?:cuenta|mi cuenta)\b'
+      strength: 0.9
+    - pattern: '\biban\b'
+      strength: 0.9
+    - pattern: '\b(?:pago|pagas|pagar|pagos) (?:por|con|mediante) (?:bizum|transferencia)\b'
+      strength: 0.8
+    - pattern: '\b(?:pago|pagas|pagar) (?:por )?adelantado\b'
+      strength: 0.8
+    - pattern: '\btransferencias?\b'
+      strength: 0.6
+    - pattern: '\bbizum\b'
+      strength: 0.5
+
+  contacto_externo:
+    - pattern: '(?<!\d)(?:\+?34[\s.-]?)?[6789](?:[\s.-]?\d){8}(?!\d)'   # Spanish phone
+      strength: 1.0
+    - pattern: '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}'                  # email
+      strength: 1.0
+    - pattern: '\b(?:escribeme|hablame|contactame|llamame|agregame|mandame un mensaje|mandame mensaje) (?:por|al|a mi|en|a traves de) (?:whatsapp|wasap|whatsap|wsp|telegram|movil|telefono|correo|email|mail|instagram)\b'
+      strength: 1.0
+    - pattern: '\b(?:whatsapp|wasap|whatsap|wsp|telegram)\b'
+      strength: 0.7
+    - pattern: '\b(?:instagram|insta)\b'
+      strength: 0.4
+
+  urgencia:
+    - pattern: '\bme voy (?:del pais|de espana|fuera|al extranjero)\b'
+      strength: 1.0
+    - pattern: '\b(?:el |al )?primero (?:que|en) (?:pague|pagar|haga el bizum|ingrese)\b'
+      strength: 1.0
+    - pattern: '\b(?:necesito el dinero|necesito venderlo) (?:ya|urgente|hoy)\b'
+      strength: 0.8
+    - pattern: '\b(?:hoy mismo|urgente|urge)\b'
+      strength: 0.7
+    - pattern: '\bsolo (?:por )?hoy\b'
+      strength: 0.6
+    - pattern: '\b(?:me mudo|por mudanza)\b'
+      strength: 0.3

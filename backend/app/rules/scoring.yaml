@@ -1,0 +1,45 @@
+# Scoring parameters (see "Motor de puntuación de riesgo" in CLAUDE.md).
+# Starting values; tune them with data/eval/listings.jsonl.
+
+levels:            # lower bound of each traffic-light level (0-100)
+  amarillo: 30
+  rojo: 60
+
+min_reason_points: 3   # reasons below this contribution are hidden in the panel
+
+text_confidence:   # how much we trust each text-analysis source
+  llm: 0.9         # LLM with a quote verified in the listing
+  regex: 0.8       # Spanish phrase rules only (plan B)
+  both: 1.0        # LLM and rules agree
+
+signals:           # risk signals: points = weight * intensity * confidence
+  precio_anomalo:
+    weight: 40
+    ratio_no_risk: 0.75      # price / reference at or above this -> intensity 0
+    ratio_max_risk: 0.25     # price / reference at or below this -> intensity 1
+    confidence_product: 1.0  # matched a specific product
+    confidence_category: 0.6 # only matched a category average
+  cuenta_nueva:
+    weight: 15
+    decay_days: 30           # intensity = exp(-days / decay_days)
+  sin_historial:
+    weight: 10
+    half_count: 3            # intensity = 1 / (1 + (ratings + sales) / half_count)
+  pago_fuera_app:
+    weight: 40
+  contacto_externo:
+    weight: 25
+  urgencia:
+    weight: 10
+  texto_generico:            # LLM-only signal (phase 5)
+    weight: 10
+    confidence: 0.7
+
+mitigators:        # risk *= (1 - max_reduction * intensity * confidence)
+  vendedor_con_historial:
+    max_reduction: 0.30
+    full_count: 50           # ratings needed for full effect
+    avg_floor: 4.0           # average at or below -> no effect
+    avg_ceiling: 5.0         # average at or above -> full effect
+  envio_protegido:
+    max_reduction: 0.15
