@@ -10,7 +10,10 @@ def find_reference(
 ) -> tuple[float, float, str] | None:
     """Return (reference price, confidence, label) for the listing, or None if unknown."""
     title = normalize(listing.title)
-    if any(contains_phrase(title, word) for word in reference.skip_words):
+    full_text = normalize(f"{listing.title}\n{listing.description}")
+    if any(contains_phrase(title, word) for word in reference.skip_words) or any(
+        contains_phrase(full_text, phrase) for phrase in reference.defect_phrases
+    ):
         return None
 
     for product in reference.products:

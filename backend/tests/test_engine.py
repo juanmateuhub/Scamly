@@ -8,7 +8,7 @@ from app.scoring.engine import combine, level_for
 from app.signals.base import SignalKind, SignalResult
 
 CONFIG: ScoringConfig = load_scoring_config()
-TOTAL_RISK_WEIGHT = 150  # sum of signal weights in scoring.yaml
+TOTAL_RISK_WEIGHT = CONFIG.total_risk_weight()
 
 
 def risk(name: str, points: float, weight: float = 100, confidence: float = 1.0) -> SignalResult:

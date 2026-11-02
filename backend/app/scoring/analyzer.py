@@ -7,8 +7,14 @@ from app.models.listing import Analysis, Listing
 from app.rules.loader import PhraseRules, ReferencePrices, ScoringConfig
 from app.scoring.engine import combine
 from app.signals.base import SignalResult
+from app.signals.description import short_description_signal
 from app.signals.price import price_signal
-from app.signals.seller import account_age_signal, history_signal, seller_reputation_mitigator
+from app.signals.seller import (
+    account_age_signal,
+    bad_ratings_signal,
+    history_signal,
+    seller_reputation_mitigator,
+)
 from app.signals.shipping import shipping_mitigator
 from app.signals.text_llm import LlmFindings, combine_text_signals, generic_text_signal
 from app.signals.text_rules import text_rule_signals
@@ -28,6 +34,7 @@ def analyze_listing(
         "precio_anomalo": price_signal(listing, reference, signals.precio_anomalo),
         "cuenta_nueva": account_age_signal(listing, signals.cuenta_nueva),
         "sin_historial": history_signal(listing, signals.sin_historial),
+        "malas_valoraciones": bad_ratings_signal(listing, signals.malas_valoraciones),
         "vendedor_con_historial": seller_reputation_mitigator(
             listing, mitigators.vendedor_con_historial
         ),
@@ -38,6 +45,7 @@ def analyze_listing(
     )
     results = [r for r in optional.values() if r is not None]
     results += combine_text_signals(rule_results, llm_findings, config.text_confidence)
+    results.append(short_description_signal(listing, signals.descripcion_pobre))
     results.append(shipping_mitigator(listing, mitigators.envio_protegido))
     unavailable = [name for name, result in optional.items() if result is None]
 

@@ -61,6 +61,8 @@ aplica** y se registra como no disponible; nunca se inventa un valor.
 | Precio anómalo | `r = precio / referencia`; lineal: 0 si `r ≥ 0,75`, 1 si `r ≤ 0,25` | 1,0 modelo exacto; 0,6 solo categoría | 40 | "Precio un X % por debajo de lo habitual" |
 | Cuenta nueva | `exp(−días / 30)` (3 días ≈ 0,9; 30 ≈ 0,37; 90 ≈ 0,05) | 1,0 | 15 | "La cuenta se creó hace X días" |
 | Sin historial | `1 / (1 + (valoraciones + ventas) / 3)` | 1,0 | 10 | "El vendedor apenas tiene valoraciones" |
+| Malas valoraciones | `min(1, n/10) · clamp((3,5 − media) / 1,5)` | 1,0 | 20 | "El vendedor tiene malas valoraciones" |
+| Descripción pobre | lineal por palabras: 1 si ≤ 5, 0 si ≥ 30 | 1,0 | 15 | "La descripción es muy corta" |
 | Pago fuera de la app | `1 − Π(1 − fuerza_frase)` sobre frases detectadas | LLM con cita verificada 0,9; regex 0,8; ambos 1,0 | 40 | "Pide pagar fuera de la plataforma, sin protección" |
 | Contacto externo | igual, con sus frases (teléfono, email, WhatsApp…) | igual | 25 | "Intenta llevar la conversación fuera de la app" |
 | Urgencia | igual ("me voy del país", "hoy mismo"…) | igual | 10 | "Mete prisa, táctica típica de estafa" |
@@ -117,7 +119,9 @@ atenuante nunca la sube.
 **Precio de referencia en la v1:** una tabla `data/reference_prices.yaml` con precios medios de
 segunda mano de productos muy estafados (consolas, iPhone, zapatillas populares, entradas):
 se empieza con 10 y se amplía a 30–50. Si el producto no está en la tabla, la señal de precio
-no se aplica y el panel lo indica.
+no se aplica y el panel lo indica. `skip_words` (accesorios, "busco") solo se buscan en el
+título, para que "con funda de regalo" en la descripción no anule la señal; `defect_phrases`
+("pantalla rota", "no carga"…) se buscan en título y descripción porque explican un precio bajo.
 
 ## Análisis del texto con LLM
 

@@ -55,6 +55,31 @@ class HistoryConfig(_Rules):
     half_count: Positive
 
 
+class BadRatingsConfig(_Rules):
+    weight: Weight
+    full_count: Positive  # ratings needed for full evidence
+    avg_ok: Annotated[float, Field(ge=0, le=5)]  # at or above -> intensity 0
+    avg_bad: Annotated[float, Field(ge=0, le=5)]  # at or below -> intensity 1
+
+    @model_validator(mode="after")
+    def _check_avg_range(self) -> Self:
+        if self.avg_ok <= self.avg_bad:
+            raise ValueError("avg_ok must be greater than avg_bad")
+        return self
+
+
+class ShortDescriptionConfig(_Rules):
+    weight: Weight
+    full_risk_words: Annotated[int, Field(ge=0)]  # at or below -> intensity 1
+    no_risk_words: Annotated[int, Field(gt=0)]  # at or above -> intensity 0
+
+    @model_validator(mode="after")
+    def _check_words(self) -> Self:
+        if self.no_risk_words <= self.full_risk_words:
+            raise ValueError("no_risk_words must be greater than full_risk_words")
+        return self
+
+
 class TextSignalConfig(_Rules):
     weight: Weight
 
@@ -91,6 +116,8 @@ class SignalsConfig(_Rules):
     precio_anomalo: PriceConfig
     cuenta_nueva: AccountAgeConfig
     sin_historial: HistoryConfig
+    malas_valoraciones: BadRatingsConfig
+    descripcion_pobre: ShortDescriptionConfig
     pago_fuera_app: TextSignalConfig
     contacto_externo: TextSignalConfig
     urgencia: TextSignalConfig
@@ -136,6 +163,8 @@ class ScoringConfig(_Rules):
                 s.precio_anomalo,
                 s.cuenta_nueva,
                 s.sin_historial,
+                s.malas_valoraciones,
+                s.descripcion_pobre,
                 s.pago_fuera_app,
                 s.contacto_externo,
                 s.urgencia,
@@ -176,8 +205,11 @@ class ReferenceProduct(_Rules):
 
 
 class ReferencePrices(_Rules):
-    # Words in a title that explain a low price (accessory, broken item, wanted ad).
+    # Words in the TITLE that mean it is not the product itself (accessory, wanted ad).
+    # Title only: "con funda de regalo" in a description must not hide the price signal.
     skip_words: list[str] = []
+    # Phrases in the title OR description that explain a low price (broken, defect).
+    defect_phrases: list[str] = []
     # Ordered: the first product whose alias matches (and no exclude word) wins.
     products: list[ReferenceProduct]
     # Fallback average price per category, used with lower confidence.

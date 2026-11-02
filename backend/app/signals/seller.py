@@ -1,7 +1,12 @@
 import math
 
 from app.models.listing import Listing
-from app.rules.loader import AccountAgeConfig, HistoryConfig, SellerReputationConfig
+from app.rules.loader import (
+    AccountAgeConfig,
+    BadRatingsConfig,
+    HistoryConfig,
+    SellerReputationConfig,
+)
 from app.signals.base import SignalResult, clamp
 
 
@@ -49,6 +54,30 @@ def history_signal(listing: Listing, config: HistoryConfig) -> SignalResult | No
     )
 
 
+def _ratings_evidence(count: int, avg: float) -> str:
+    avg_text = f"{avg:.1f}".replace(".", ",")
+    return f"{_plural(count, 'valoración', 'valoraciones')}, media {avg_text}"
+
+
+def bad_ratings_signal(listing: Listing, config: BadRatingsConfig) -> SignalResult | None:
+    count = listing.seller.ratings_count
+    avg = listing.seller.ratings_avg
+    if not count or avg is None:
+        return None
+
+    volume = min(1.0, count / config.full_count)
+    badness = clamp((config.avg_ok - avg) / (config.avg_ok - config.avg_bad))
+    return SignalResult(
+        signal="malas_valoraciones",
+        kind="risk",
+        weight=config.weight,
+        intensity=volume * badness,
+        confidence=1.0,
+        message="El vendedor tiene malas valoraciones",
+        evidence=_ratings_evidence(count, avg),
+    )
+
+
 def seller_reputation_mitigator(
     listing: Listing, config: SellerReputationConfig
 ) -> SignalResult | None:
@@ -59,7 +88,6 @@ def seller_reputation_mitigator(
 
     volume = min(1.0, count / config.full_count)
     quality = clamp((avg - config.avg_floor) / (config.avg_ceiling - config.avg_floor))
-    avg_text = f"{avg:.1f}".replace(".", ",")
 
     return SignalResult(
         signal="vendedor_con_historial",
@@ -68,5 +96,5 @@ def seller_reputation_mitigator(
         intensity=volume * quality,
         confidence=1.0,
         message="Vendedor con buen historial",
-        evidence=f"{_plural(count, 'valoración', 'valoraciones')}, media {avg_text}",
+        evidence=_ratings_evidence(count, avg),
     )

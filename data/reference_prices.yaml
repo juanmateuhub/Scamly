@@ -3,7 +3,7 @@
 # Aliases and exclude words are matched on the title, lowercase and without accents.
 # Order matters: put specific models before generic ones.
 
-skip_words:            # a low price is explained, so the price signal is skipped
+skip_words:            # in the TITLE only: the listing is not the product itself
   - funda
   - carcasa
   - protector
@@ -11,13 +11,19 @@ skip_words:            # a low price is explained, so the price signal is skippe
   - solo caja
   - caja vacia
   - pegatina
+  - busco
+  - compro
+
+defect_phrases:        # in title OR description: a defect explains a low price
   - para piezas
   - averiada
   - averiado
   - no funciona
   - pantalla rota
-  - busco
-  - compro
+  - no carga
+  - no enciende
+  - tiene un fallo
+  - por eso el precio
 
 products:
   - name: PS5 Digital
@@ -28,7 +34,7 @@ products:
     category: consolas
     price_eur: 400
     aliases: [ps5, playstation 5]
-    exclude: [digital, pro, mando, juego]
+    exclude: [digital, pro, mando, juego, "juegos ps5", "juegos de ps5", "juegos para ps5"]
   - name: Nintendo Switch 2
     category: consolas
     price_eur: 380

@@ -4,11 +4,17 @@ import pytest
 
 from app.rules.loader import (
     AccountAgeConfig,
+    BadRatingsConfig,
     HistoryConfig,
     SellerReputationConfig,
     ShippingConfig,
 )
-from app.signals.seller import account_age_signal, history_signal, seller_reputation_mitigator
+from app.signals.seller import (
+    account_age_signal,
+    bad_ratings_signal,
+    history_signal,
+    seller_reputation_mitigator,
+)
 from app.signals.shipping import shipping_mitigator
 from tests.factories import make_listing
 
@@ -18,6 +24,7 @@ REPUTATION = SellerReputationConfig(
     max_reduction=0.30, full_count=50, avg_floor=4.0, avg_ceiling=5.0
 )
 SHIPPING = ShippingConfig(max_reduction=0.15)
+BAD = BadRatingsConfig(weight=20, full_count=10, avg_ok=3.5, avg_bad=2.0)
 
 
 # --- account age -------------------------------------------------------------
@@ -157,3 +164,40 @@ def test_shipping_not_available_does_not_mitigate() -> None:
     result = shipping_mitigator(make_listing(shipping_available=False), SHIPPING)
 
     assert result.intensity == 0.0
+
+
+# --- bad ratings ----------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("count", "avg", "expected"),
+    [
+        (10, 2.0, 1.0),  # enough ratings, very bad average
+        (40, 1.5, 1.0),
+        (10, 2.75, 0.5),  # halfway between avg_bad and avg_ok
+        (5, 2.0, 0.5),  # few ratings: less evidence
+        (10, 3.5, 0.0),  # acceptable average
+        (50, 4.8, 0.0),
+    ],
+)
+def test_bad_ratings_intensity(count: int, avg: float, expected: float) -> None:
+    listing = make_listing(seller={"ratings_count": count, "ratings_avg": avg})
+    result = bad_ratings_signal(listing, BAD)
+
+    assert result is not None
+    assert result.kind == "risk"
+    assert result.signal == "malas_valoraciones"
+    assert math.isclose(result.intensity, expected)
+
+
+def test_bad_ratings_message_and_evidence() -> None:
+    listing = make_listing(seller={"ratings_count": 12, "ratings_avg": 2.4})
+    result = bad_ratings_signal(listing, BAD)
+
+    assert result is not None
+    assert result.message == "El vendedor tiene malas valoraciones"
+    assert result.evidence == "12 valoraciones, media 2,4"
+
+
+def test_bad_ratings_unknown_returns_none() -> None:
+    assert bad_ratings_signal(make_listing(seller={"ratings_count": 0}), BAD) is None

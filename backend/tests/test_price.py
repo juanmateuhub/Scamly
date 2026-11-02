@@ -22,7 +22,8 @@ CONFIG = PriceConfig(
 )
 
 REFERENCE = ReferencePrices(
-    skip_words=["funda", "para piezas", "busco"],
+    skip_words=["funda", "busco"],
+    defect_phrases=["para piezas", "pantalla rota", "no carga"],
     products=[
         ReferenceProduct(
             name="PS5", category="consolas", price_eur=500, aliases=["ps5", "playstation 5"]
@@ -46,8 +47,10 @@ REFERENCE = ReferencePrices(
 )
 
 
-def signal_for(title: str, price: float, category: str | None = None) -> SignalResult | None:
-    listing = make_listing(title=title, price_eur=price, category=category)
+def signal_for(
+    title: str, price: float, category: str | None = None, description: str = ""
+) -> SignalResult | None:
+    listing = make_listing(title=title, price_eur=price, category=category, description=description)
     return price_signal(listing, REFERENCE, CONFIG)
 
 
@@ -146,6 +149,40 @@ def test_fair_price_message() -> None:
 
     assert result is not None
     assert result.message == "Precio en línea con lo habitual"
+
+
+@pytest.mark.parametrize(
+    "description", ["Pantalla rota, el resto funciona", "Uno de los auriculares no carga bien"]
+)
+def test_defects_in_the_description_explain_low_price(description: str) -> None:
+    assert signal_for("iPhone 15 128GB", 150, description=description) is None
+
+
+def test_accessory_words_in_the_description_do_not_hide_the_price() -> None:
+    # A scammer writing "con funda de regalo" must not switch the price signal off.
+    result = signal_for("iPhone 15 128GB", 150, description="Con funda de regalo, solo bizum")
+
+    assert result is not None
+    assert result.intensity > 0
+
+
+def test_product_exclude_phrases_skip_games_packs() -> None:
+    reference = ReferencePrices(
+        products=[
+            ReferenceProduct(
+                name="PS5",
+                category="consolas",
+                price_eur=400,
+                aliases=["ps5"],
+                exclude=["juegos ps5", "juegos para ps5"],
+            )
+        ]
+    )
+    pack = make_listing(title="Pack 3 juegos PS5", price_eur=60)
+    bundle = make_listing(title="PS5 + 2 juegos", price_eur=150)
+
+    assert price_signal(pack, reference, CONFIG) is None
+    assert price_signal(bundle, reference, CONFIG) is not None
 
 
 def test_shipped_rule_files_are_valid() -> None:

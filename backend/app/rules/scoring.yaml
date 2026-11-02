@@ -26,6 +26,15 @@ signals:           # risk signals: points = weight * intensity * confidence
   sin_historial:
     weight: 10
     half_count: 3            # intensity = 1 / (1 + (ratings + sales) / half_count)
+  malas_valoraciones:
+    weight: 20
+    full_count: 10           # ratings needed for full evidence
+    avg_ok: 3.5              # average at or above -> intensity 0
+    avg_bad: 2.0             # average at or below -> intensity 1
+  descripcion_pobre:
+    weight: 15
+    full_risk_words: 5       # description words at or below -> intensity 1
+    no_risk_words: 30        # at or above -> intensity 0
   pago_fuera_app:
     weight: 40
   contacto_externo:

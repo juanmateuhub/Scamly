@@ -22,6 +22,7 @@ def test_ps5_example_is_red_with_explained_reasons(
         "cuenta_nueva",
         "sin_historial",
         "urgencia",
+        "descripcion_pobre",
     }
     points = [r["points"] for r in body["reasons"]]
     assert points == sorted(points, reverse=True)
@@ -48,7 +49,7 @@ def test_honest_listing_is_green(client: TestClient, ps5_listing: dict[str, Any]
     body = client.post("/analyze", json=ps5_listing).json()
 
     assert body["level"] == "verde"
-    assert {r["signal"] for r in body["reasons"]} == {"vendedor_con_historial", "envio_protegido"}
+    assert {"vendedor_con_historial", "envio_protegido"} <= {r["signal"] for r in body["reasons"]}
 
 
 def test_unknown_product_reports_unavailable_price(

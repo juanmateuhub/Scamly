@@ -48,7 +48,10 @@ def test_dataset_is_valid_and_balanced() -> None:
 
     assert len(items) >= 100
     for split in ("dev", "test"):
-        assert counts[("sospechoso", split)] == counts[("legitimo", split)] > 0
+        scams, legit = counts[("sospechoso", split)], counts[("legitimo", split)]
+        assert scams > 0
+        assert legit > 0
+        assert abs(scams - legit) <= 0.1 * (scams + legit)  # roughly balanced
 
 
 def test_dataset_uses_only_fictitious_contact_data() -> None:

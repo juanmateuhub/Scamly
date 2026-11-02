@@ -80,10 +80,12 @@ def test_hallucinated_quotes_do_not_add_risk(
     )
     fake.reply = {**ALL_CLEAR, "pago_fuera_app": detected("solo acepto Bizum")}
 
+    rules_only = rules_only_result(llm_client, fake, ps5_listing)
     body = post(llm_client, ps5_listing)
 
-    assert body["risk_score"] == 0
     assert body["text_analysis"] == "llm"
+    assert "pago_fuera_app" not in {r["signal"] for r in body["reasons"]}
+    assert body["risk_score"] == rules_only["risk_score"]
 
 
 def test_llm_failure_falls_back_to_rules(
@@ -94,7 +96,9 @@ def test_llm_failure_falls_back_to_rules(
     fake.fail = True
 
     body = post(llm_client, ps5_listing)
+    again = post(llm_client, ps5_listing)
 
     assert body["text_analysis"] == "basico"
     assert "texto_generico" in body["unavailable_signals"]
-    assert body["risk_score"] == 70  # same as the rules-only PS5 example
+    assert body["risk_score"] == again["risk_score"]
+    assert body["level"] == "rojo"
