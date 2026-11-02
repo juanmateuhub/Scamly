@@ -4,18 +4,66 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-def test_analyze_accepts_valid_listing(client: TestClient, ps5_listing: dict[str, Any]) -> None:
+def test_ps5_example_is_red_with_explained_reasons(
+    client: TestClient, ps5_listing: dict[str, Any]
+) -> None:
     response = client.post("/analyze", json=ps5_listing)
 
     assert response.status_code == 200
     body = response.json()
-    assert body["risk_score"] == 0
-    assert body["level"] == "verde"
-    assert body["reasons"] == []
+    assert body["level"] == "rojo"
+    assert body["risk_score"] >= 60
+    signals = [r["signal"] for r in body["reasons"]]
+    assert signals[0] == "pago_fuera_app"
+    assert set(signals) == {
+        "pago_fuera_app",
+        "precio_anomalo",
+        "contacto_externo",
+        "cuenta_nueva",
+        "sin_historial",
+        "urgencia",
+    }
+    points = [r["points"] for r in body["reasons"]]
+    assert points == sorted(points, reverse=True)
+    assert body["text_analysis"] == "basico"
     assert body["version"] == "0.1.0"
-    assert 0 <= body["confidence"] <= 1
-    assert body["text_analysis"] in {"llm", "basico"}
+    assert 0 < body["confidence"] <= 1
     assert "analyzed_at" in body
+
+
+def test_honest_listing_is_green(client: TestClient, ps5_listing: dict[str, Any]) -> None:
+    ps5_listing.update(
+        title="PS5 slim con dos mandos",
+        description="Con factura y caja original. Envío por la app o en mano.",
+        price_eur=390,
+        shipping_available=True,
+        seller={
+            "account_age_days": 900,
+            "ratings_count": 85,
+            "ratings_avg": 4.9,
+            "sales_count": 70,
+        },
+    )
+
+    body = client.post("/analyze", json=ps5_listing).json()
+
+    assert body["level"] == "verde"
+    assert {r["signal"] for r in body["reasons"]} == {"vendedor_con_historial", "envio_protegido"}
+
+
+def test_unknown_product_reports_unavailable_price(
+    client: TestClient, ps5_listing: dict[str, Any]
+) -> None:
+    ps5_listing.update(title="Bicicleta de montaña", description="", seller={})
+
+    body = client.post("/analyze", json=ps5_listing).json()
+
+    assert set(body["unavailable_signals"]) >= {
+        "precio_anomalo",
+        "cuenta_nueva",
+        "sin_historial",
+        "vendedor_con_historial",
+    }
 
 
 def test_analyze_accepts_missing_seller_data(

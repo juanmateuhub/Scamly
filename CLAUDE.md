@@ -92,7 +92,11 @@ referencia, si el vendedor no es visible o si el LLM ha caído (plan B). El pane
 
 **Semáforo:** 0 a 29 verde ("sin señales claras"), 30 a 59 amarillo ("revisa con cuidado"),
 60 a 100 rojo ("alto riesgo de estafa"). Los motivos se ordenan por aportación `p_i` y se
-ocultan los de aportación < 3 puntos. El panel nunca dice "es una estafa": dice "señales de riesgo".
+ocultan los de aportación < 3 puntos (`min_reason_points`). Los atenuantes van después, con
+`points` negativo (= `−riesgo_bruto · m_j`, lo que quitan por sí solos), y se muestran si
+`m_j ≥ 0,05` (`min_mitigator_reduction`) aunque la nota ya sea 0. Los `points` de los motivos
+no suman la nota (la agregación es noisy-OR). El panel nunca dice "es una estafa": dice
+"señales de riesgo".
 
 **Ejemplo PS5** (petición de "Contrato de la API", texto analizado por LLM):
 precio 31,2 (`r = 0,36` → intensidad 0,78 · 40) · pago 36 · contacto 22,5 · cuenta nueva 13,6 ·

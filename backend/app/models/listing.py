@@ -44,7 +44,8 @@ class Listing(_StrictModel):
 
 class Reason(BaseModel):
     signal: str
-    points: Annotated[float, Field(ge=0, le=100)]
+    # Risk signals add points; mitigators show the points they remove as a negative number.
+    points: Annotated[float, Field(ge=-100, le=100)]
     intensity: Unit
     confidence: Unit
     message: str

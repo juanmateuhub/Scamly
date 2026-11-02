@@ -5,7 +5,8 @@ levels:            # lower bound of each traffic-light level (0-100)
   amarillo: 30
   rojo: 60
 
-min_reason_points: 3   # reasons below this contribution are hidden in the panel
+min_reason_points: 3         # risk reasons below this contribution are hidden in the panel
+min_mitigator_reduction: 0.05 # mitigators below this effect (fraction) are hidden
 
 text_confidence:   # how much we trust each text-analysis source
   llm: 0.9         # LLM with a quote verified in the listing

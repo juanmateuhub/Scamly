@@ -117,9 +117,31 @@ class LevelsConfig(_Rules):
 class ScoringConfig(_Rules):
     levels: LevelsConfig
     min_reason_points: Annotated[float, Field(ge=0)]
+    min_mitigator_reduction: Unit
     text_confidence: TextConfidenceConfig
     signals: SignalsConfig
     mitigators: MitigatorsConfig
+
+    @model_validator(mode="after")
+    def _check_levels(self) -> Self:
+        if not 0 < self.levels.amarillo < self.levels.rojo:
+            raise ValueError("levels must satisfy 0 < amarillo < rojo")
+        return self
+
+    def total_risk_weight(self) -> float:
+        s = self.signals
+        return sum(
+            signal.weight
+            for signal in (
+                s.precio_anomalo,
+                s.cuenta_nueva,
+                s.sin_historial,
+                s.pago_fuera_app,
+                s.contacto_externo,
+                s.urgencia,
+                s.texto_generico,
+            )
+        )
 
 
 # --- phrases_es.yaml ------------------------------------------------------------
