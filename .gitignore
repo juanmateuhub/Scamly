@@ -1,0 +1,36 @@
+# Project spec (personal document, kept out of the repo)
+*.pdf
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# SQLite cache
+*.db
+*.sqlite3
+
+# Node
+node_modules/
+extension/dist/
+extension/coverage/
+*.zip
+
+# IDE / OS
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store
