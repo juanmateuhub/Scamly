@@ -10,13 +10,13 @@ dependencies = [
     "pydantic-settings==2.16.2",
     "uvicorn[standard]==0.54.0",
     "pyyaml==6.0.3",
+    "httpx==0.28.1",      # HTTP client for the LLM API (already needed by the test client)
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest==9.2.0",
     "pytest-cov==7.1.0",
-    "httpx==0.28.1",      # required by fastapi.testclient
     "ruff==0.17.3",
     "mypy==2.4.1",
     "types-PyYAML==6.0.12.20261030",

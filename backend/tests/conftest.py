@@ -1,14 +1,34 @@
+from collections.abc import Iterator
+from datetime import timedelta
+from pathlib import Path
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
 
+from app.api.analyze import get_llm_service
+from app.llm.cache import FindingsCache
+from app.llm.service import LlmTextService
 from app.main import app
+from tests.fakes import FakeLLM
 
 
 @pytest.fixture
-def client() -> TestClient:
-    return TestClient(app)
+def client() -> Iterator[TestClient]:
+    """API client with the LLM disabled (rules only), so tests never call a real API."""
+    app.dependency_overrides[get_llm_service] = lambda: None
+    yield TestClient(app)
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def client_with_llm(tmp_path: Path) -> Iterator[tuple[TestClient, FakeLLM]]:
+    """API client backed by a fake LLM; set `fake.reply` before posting."""
+    fake = FakeLLM()
+    service = LlmTextService(fake, FindingsCache(tmp_path / "c.db", timedelta(hours=24)), "fake")
+    app.dependency_overrides[get_llm_service] = lambda: service
+    yield TestClient(app), fake
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture

@@ -22,6 +22,10 @@ htmlcov/
 # SQLite cache
 *.db
 *.sqlite3
+backend/.cache/
+
+# Local Claude Code launch config
+.claude/
 
 # Node
 node_modules/
