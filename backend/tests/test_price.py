@@ -21,11 +21,28 @@ CONFIG = PriceConfig(
     confidence_product=1.0,
     confidence_category=0.6,
     comparables=ComparablesConfig(min_count=5, full_count=15, max_confidence=0.9),
+    condition_factors={
+        "nuevo": 1.0,
+        "como_nuevo": 1.0,
+        "buen_estado": 0.85,
+        "aceptable": 0.6,
+        "danado": 0.3,
+        "desconocido": 0.85,
+    },
 )
 
 REFERENCE = ReferencePrices(
     skip_words=["funda", "busco"],
     variant_words=["pro", "max", "plus", "digital"],
+    conditions={
+        "sin abrir": "nuevo",
+        "como nuevo": "como_nuevo",
+        "muy bueno": "como_nuevo",
+        "en buen estado": "buen_estado",
+        "satisfactorio": "aceptable",
+        "lo ha dado todo": "danado",
+    },
+    wear_phrases=["arañazos", "rayado", "desgaste"],
     defect_phrases=["para piezas", "pantalla rota", "no carga"],
     products=[
         ReferenceProduct(
@@ -51,9 +68,19 @@ REFERENCE = ReferencePrices(
 
 
 def signal_for(
-    title: str, price: float, category: str | None = None, description: str = ""
+    title: str,
+    price: float,
+    category: str | None = None,
+    description: str = "",
+    condition: str | None = "Como nuevo",
 ) -> SignalResult | None:
-    listing = make_listing(title=title, price_eur=price, category=category, description=description)
+    listing = make_listing(
+        title=title,
+        price_eur=price,
+        category=category,
+        description=description,
+        condition=condition,
+    )
     return price_signal(listing, REFERENCE, CONFIG)
 
 
@@ -85,7 +112,7 @@ def test_ps5_example_points_message_and_evidence() -> None:
     assert result.confidence == 1.0
     assert math.isclose(result.points, 31.2)
     assert result.message == "Precio un 64 % por debajo de lo habitual"
-    assert result.evidence == "180 € frente a 500 € (PS5)"
+    assert result.evidence == "180 € frente a 500 € (PS5) · estado: como nuevo"
 
 
 def test_intensity_never_decreases_when_price_drops() -> None:
@@ -120,8 +147,8 @@ def test_product_exclude_picks_the_specific_model() -> None:
 
     assert pro is not None
     assert base is not None
-    assert pro.evidence.endswith("(iPhone 15 Pro)")
-    assert base.evidence.endswith("(iPhone 15)")
+    assert "(iPhone 15 Pro)" in pro.evidence
+    assert "(iPhone 15)" in base.evidence
 
 
 def test_excluded_variant_without_own_entry_is_not_matched() -> None:
@@ -137,7 +164,7 @@ def test_category_fallback_has_lower_confidence() -> None:
 
     assert result is not None
     assert result.confidence == 0.6
-    assert result.evidence == "20 € frente a 80 € (categoría zapatillas)"
+    assert result.evidence == "20 € frente a 80 € (categoría zapatillas) · estado: como nuevo"
 
 
 def test_decimal_prices_use_spanish_format() -> None:
@@ -208,7 +235,7 @@ def comparables(*prices: float, title: str = "iPhone 17 256GB") -> list[dict[str
 def comparable_signal(
     title: str, price: float, items: list[dict[str, object]]
 ) -> SignalResult | None:
-    listing = make_listing(title=title, price_eur=price, comparables=items)
+    listing = make_listing(title=title, price_eur=price, comparables=items, condition="Como nuevo")
     return price_signal(listing, REFERENCE, CONFIG)
 
 
@@ -218,7 +245,7 @@ def test_median_of_comparables_is_the_reference() -> None:
     result = comparable_signal("iPhone 17", 350, items)
 
     assert result is not None
-    assert result.evidence == "350 € frente a 720 € (mediana de 7 anuncios similares)"
+    assert result.evidence.startswith("350 € frente a 720 € (mediana de 7 anuncios similares)")
     assert math.isclose(result.intensity, (0.75 - 350 / 720) / 0.5)
 
 
@@ -227,7 +254,7 @@ def test_comparables_win_over_the_reference_table() -> None:
     result = comparable_signal("iPhone 15", 280, comparables(*[300] * 6, title="iPhone 15 128GB"))
 
     assert result is not None
-    assert result.evidence.endswith("(mediana de 6 anuncios similares)")
+    assert "(mediana de 6 anuncios similares)" in result.evidence
     assert result.intensity == 0
 
 
@@ -235,7 +262,7 @@ def test_too_few_comparables_fall_back_to_the_table() -> None:
     result = comparable_signal("iPhone 15", 250, comparables(300, 310, title="iPhone 15"))
 
     assert result is not None
-    assert result.evidence == "250 € frente a 500 € (iPhone 15)"
+    assert result.evidence.startswith("250 € frente a 500 € (iPhone 15)")
 
 
 def test_too_few_comparables_and_unknown_product_returns_none() -> None:
@@ -255,7 +282,7 @@ def test_other_variants_accessories_and_defects_are_ignored() -> None:
     result = comparable_signal("iPhone 17", 700, items)
 
     assert result is not None
-    assert result.evidence == "700 € frente a 720 € (mediana de 5 anuncios similares)"
+    assert result.evidence.startswith("700 € frente a 720 € (mediana de 5 anuncios similares)")
 
 
 def test_a_pro_listing_only_compares_with_pro_listings() -> None:
@@ -267,7 +294,7 @@ def test_a_pro_listing_only_compares_with_pro_listings() -> None:
     result = comparable_signal("iPhone 17 Pro 256GB", 1000, items)
 
     assert result is not None
-    assert result.evidence.endswith("frente a 1100 € (mediana de 5 anuncios similares)")
+    assert "frente a 1100 € (mediana de 5 anuncios similares)" in result.evidence
 
 
 @pytest.mark.parametrize(
@@ -291,3 +318,47 @@ def test_scattered_prices_lower_the_confidence() -> None:
     assert tight is not None
     assert scattered is not None
     assert scattered.confidence < tight.confidence
+
+
+# --- condition: a worn item may be cheap for a good reason ---------------------------------
+
+
+@pytest.mark.parametrize(
+    ("condition", "factor", "label"),
+    [
+        ("Sin abrir", 1.0, "nuevo"),
+        ("Como nuevo", 1.0, "como nuevo"),
+        ("Muy bueno", 1.0, "como nuevo"),  # Vinted
+        ("En buen estado", 0.85, "buen estado"),
+        ("Satisfactorio", 0.6, "aceptable"),
+        ("Lo ha dado todo", 0.3, "dañado"),
+        (None, 0.85, None),
+        ("Texto desconocido", 0.85, None),
+    ],
+)
+def test_condition_scales_the_price_signal(
+    condition: str | None, factor: float, label: str | None
+) -> None:
+    result = signal_for("PS5", 125, condition=condition)  # full intensity at ratio 0.25
+
+    assert result is not None
+    assert math.isclose(result.intensity, factor)
+    if label:
+        assert result.evidence.endswith(f"· estado: {label}")
+    else:
+        assert "estado" not in result.evidence
+
+
+def test_wear_in_the_description_lowers_the_condition() -> None:
+    result = signal_for("PS5", 125, description="Tiene algunos arañazos en la carcasa")
+
+    assert result is not None
+    assert math.isclose(result.intensity, 0.6)
+    assert result.evidence.endswith("· estado: con desgaste («arañazos»)")
+
+
+def test_wear_never_improves_a_worse_condition() -> None:
+    result = signal_for("PS5", 125, condition="Lo ha dado todo", description="algo rayado")
+
+    assert result is not None
+    assert math.isclose(result.intensity, 0.3)

@@ -60,6 +60,7 @@ export function extractWallapop(doc: Document, url: URL, now: Date): ExtractResu
       description: (asString(at(item, "description", "original")) ?? "").slice(0, MAX_TEXT_LENGTH),
       price_eur: price,
       category: asString(lastTaxonomy) ?? null,
+      condition: asString(at(item, "typeAttributes", "condition", "text")) ?? null,
       seller: readSeller(sellerData, now),
       shipping_available:
         at(item, "shipping", "isItemShippable") === true &&

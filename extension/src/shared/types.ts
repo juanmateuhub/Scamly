@@ -32,6 +32,8 @@ export interface ListingPayload {
   description: string;
   price_eur: number;
   category: string | null;
+  /** Condition text as shown by the platform ("Como nuevo", "Muy bueno"...). */
+  condition: string | null;
   seller: Seller;
   shipping_available: boolean;
   image_count: number;

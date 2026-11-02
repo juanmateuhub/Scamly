@@ -44,6 +44,8 @@ class Listing(_StrictModel):
     description: Text = ""
     price_eur: Annotated[float, Field(ge=0, allow_inf_nan=False)]
     category: Annotated[str, Field(max_length=100)] | None = None
+    # Condition text as shown by the platform ("Como nuevo", "Muy bueno"...).
+    condition: Annotated[str, Field(max_length=60)] | None = None
     seller: Seller = Field(default_factory=Seller)
     shipping_available: bool = False
     image_count: Count = 0

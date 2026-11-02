@@ -14,6 +14,7 @@ import { MESSAGES } from "./messages";
 const JSON_LD = 'script[type="application/ld+json"]';
 const RATING = ".web_ui__Rating__rating";
 const PHOTOS = '[data-testid^="item-photo-"][data-testid$="--img"]';
+const CONDITION = '[data-testid="item-attributes-status"] [itemprop="status"]';
 const ITEM_ID = /^\/items\/(\d+)/;
 const RATING_AVERAGE = /(\d+(?:[.,]\d+)?)\s+sobre\s+5/i;
 
@@ -45,6 +46,7 @@ export function extractVinted(doc: Document, url: URL): ExtractResult {
       description: (asString(at(product, "description")) ?? "").slice(0, MAX_TEXT_LENGTH),
       price_eur: price,
       category: asString(at(product, "category")) ?? null,
+      condition: readCondition(doc, product),
       // Vinted does not show account age or sales on the item page.
       seller: readSeller(doc),
       // On Vinted every purchase goes through the platform's protected checkout and shipping.
@@ -52,6 +54,13 @@ export function extractVinted(doc: Document, url: URL): ExtractResult {
       image_count: countPhotos(doc),
     },
   };
+}
+
+function readCondition(doc: Document, product: unknown): string | null {
+  const shown = doc.querySelector(CONDITION)?.textContent?.trim();
+  if (shown) return shown.slice(0, 60);
+  // Fallback: JSON-LD only distinguishes new from used.
+  return at(product, "offers", "itemCondition") === "NewCondition" ? "Nuevo" : null;
 }
 
 function countPhotos(doc: Document): number {

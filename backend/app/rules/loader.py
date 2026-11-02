@@ -22,6 +22,15 @@ Weight = Annotated[float, Field(ge=0, le=100)]
 Positive = Annotated[float, Field(gt=0)]
 
 TextSignalName = Literal["pago_fuera_app", "contacto_externo", "urgencia"]
+# Ordered from best to worst.
+ConditionLevel = Literal["nuevo", "como_nuevo", "buen_estado", "aceptable", "danado"]
+CONDITION_ORDER: tuple[ConditionLevel, ...] = (
+    "nuevo",
+    "como_nuevo",
+    "buen_estado",
+    "aceptable",
+    "danado",
+)
 
 
 class _Rules(BaseModel):
@@ -44,6 +53,15 @@ class PriceConfig(_Rules):
     confidence_product: Unit
     confidence_category: Unit
     comparables: ComparablesConfig
+    # A worn item can be cheap for a good reason: the price intensity is multiplied by this.
+    condition_factors: dict[ConditionLevel | Literal["desconocido"], Unit]
+
+    @model_validator(mode="after")
+    def _check_condition_factors(self) -> Self:
+        missing = {*CONDITION_ORDER, "desconocido"} - set(self.condition_factors)
+        if missing:
+            raise ValueError(f"condition_factors missing: {sorted(missing)}")
+        return self
 
     @model_validator(mode="after")
     def _check_ratios(self) -> Self:
@@ -219,6 +237,10 @@ class ReferencePrices(_Rules):
     defect_phrases: list[str] = []
     # Words that make a different model ("pro", "max"...): comparables must share the same set.
     variant_words: list[str] = []
+    # Platform condition text -> level (matched without case or accents).
+    conditions: dict[str, ConditionLevel] = {}
+    # Wear mentioned in the description: the condition is at best "aceptable".
+    wear_phrases: list[str] = []
     # Ordered: the first product whose alias matches (and no exclude word) wins.
     products: list[ReferenceProduct]
     # Fallback average price per category, used with lower confidence.

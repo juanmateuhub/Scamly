@@ -25,6 +25,36 @@ defect_phrases:        # in title OR description: a defect explains a low price
   - tiene un fallo
   - por eso el precio
 
+conditions:            # platform condition text -> level
+  sin abrir: nuevo                       # Wallapop
+  nuevo: nuevo
+  como nuevo: como_nuevo
+  en buen estado: buen_estado
+  en condiciones aceptables: aceptable
+  lo ha dado todo: danado
+  nuevo con etiquetas: nuevo             # Vinted
+  nuevo sin etiquetas: nuevo
+  muy bueno: como_nuevo
+  bueno: buen_estado
+  satisfactorio: aceptable
+
+wear_phrases:          # wear named in the text: condition at best "aceptable"
+  - arañazo
+  - arañazos
+  - rayado
+  - rayada
+  - rayones
+  - golpe
+  - golpes
+  - desgaste
+  - desgastado
+  - desgastada
+  - marcas de uso
+  - desconchado
+  - abolladura
+  - mancha
+  - manchas
+
 variant_words:         # a comparable must have exactly the same ones as the listing
   - pro
   - max

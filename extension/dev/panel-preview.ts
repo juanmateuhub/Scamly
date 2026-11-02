@@ -13,6 +13,7 @@ const SAMPLE: ListingPayload = {
   description: "Me voy del país, solo Bizum, escríbeme por WhatsApp",
   price_eur: 180,
   category: "Consolas",
+  condition: "Como nuevo",
   seller: { account_age_days: 3, ratings_count: 0, sales_count: 0 },
   shipping_available: false,
   image_count: 2,

@@ -1,7 +1,7 @@
 import statistics
 
 from app.models.listing import Listing
-from app.rules.loader import PriceConfig, ReferencePrices
+from app.rules.loader import CONDITION_ORDER, ConditionLevel, PriceConfig, ReferencePrices
 from app.signals.base import SignalResult, clamp, contains_phrase, format_eur, normalize
 
 SIGNAL = "precio_anomalo"
@@ -16,6 +16,32 @@ def _explains_low_price(title: str, text: str, reference: ReferencePrices) -> bo
 
 def _variants(normalized_title: str, reference: ReferencePrices) -> frozenset[str]:
     return frozenset(w for w in reference.variant_words if contains_phrase(normalized_title, w))
+
+
+CONDITION_LABELS: dict[ConditionLevel, str] = {
+    "nuevo": "nuevo",
+    "como_nuevo": "como nuevo",
+    "buen_estado": "buen estado",
+    "aceptable": "aceptable",
+    "danado": "dañado",
+}
+
+
+def assess_condition(
+    listing: Listing, reference: ReferencePrices
+) -> tuple[ConditionLevel | None, str | None]:
+    """(level, label) from the platform condition, worsened by wear named in the description."""
+    levels = {normalize(text).strip(): level for text, level in reference.conditions.items()}
+    level = levels.get(normalize(listing.condition or "").strip())
+    label = CONDITION_LABELS[level] if level else None
+
+    text = normalize(f"{listing.title}\n{listing.description}")
+    wear = next((p for p in reference.wear_phrases if contains_phrase(text, p)), None)
+    if wear is not None:
+        worn: ConditionLevel = "aceptable"
+        if level is None or CONDITION_ORDER.index(level) < CONDITION_ORDER.index(worn):
+            level, label = worn, f"con desgaste («{wear}»)"
+    return level, label
 
 
 def comparable_reference(
@@ -82,8 +108,11 @@ def price_signal(
         return None
     reference_price, confidence, label = match
 
+    level, condition_label = assess_condition(listing, reference)
+    condition_factor = config.condition_factors[level or "desconocido"]
+
     ratio = listing.price_eur / reference_price
-    intensity = clamp(
+    intensity = condition_factor * clamp(
         (config.ratio_no_risk - ratio) / (config.ratio_no_risk - config.ratio_max_risk)
     )
     below_pct = round((1 - ratio) * 100)
@@ -93,6 +122,8 @@ def price_signal(
         else "Precio en línea con lo habitual"
     )
     evidence = f"{format_eur(listing.price_eur)} frente a {format_eur(reference_price)} ({label})"
+    if condition_label:
+        evidence += f" · estado: {condition_label}"
 
     return SignalResult(
         signal=SIGNAL,

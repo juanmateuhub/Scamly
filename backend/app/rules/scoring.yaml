@@ -15,7 +15,7 @@ text_confidence:   # how much we trust each text-analysis source
 
 signals:           # risk signals: points = weight * intensity * confidence
   precio_anomalo:
-    weight: 40
+    weight: 55               # 40 -> 55 (2026-11-02): with live comparables a big drop must count
     ratio_no_risk: 0.75      # price / reference at or above this -> intensity 0
     ratio_max_risk: 0.25     # price / reference at or below this -> intensity 1
     confidence_product: 1.0  # matched a specific product
@@ -24,6 +24,13 @@ signals:           # risk signals: points = weight * intensity * confidence
       min_count: 5           # fewer similar listings -> reference table instead
       full_count: 15         # similar listings for full confidence
       max_confidence: 0.9    # times (1 - IQR / median): scattered prices are trusted less
+    condition_factors:       # price intensity multiplier: worn items can be cheap for a reason
+      nuevo: 1.0
+      como_nuevo: 1.0
+      buen_estado: 0.85
+      aceptable: 0.6
+      danado: 0.3
+      desconocido: 0.85
   cuenta_nueva:
     weight: 15
     decay_days: 30           # intensity = exp(-days / decay_days)

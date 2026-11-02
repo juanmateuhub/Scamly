@@ -50,6 +50,7 @@ describe("extractWallapop", () => {
         description: "Me voy del país, solo Bizum, escríbeme por WhatsApp",
         price_eur: 180,
         category: "Consolas",
+        condition: "Como nuevo",
         seller: { account_age_days: 3, ratings_count: 0, sales_count: 0 },
         shipping_available: false,
         image_count: 2,
@@ -115,11 +116,21 @@ describe("extractVinted", () => {
         description: "Nuevas en caja.\nTe paso el enlace de pago por correo.",
         price_eur: 35,
         category: "Hombre Zapatillas",
+        condition: "Muy bueno",
         seller: { ratings_count: 12, ratings_avg: 4.5 },
         shipping_available: true,
         image_count: 3,
       },
     });
+  });
+
+  it("falls back to JSON-LD for the condition", () => {
+    const doc = fixture("vinted-item.html");
+    doc.querySelector('[data-testid="item-attributes-status"]')?.remove();
+
+    const result = extractVinted(doc, VINTED_URL);
+
+    expect(result.ok && result.listing.condition).toBeNull();
   });
 
   it("leaves the seller empty when no rating is shown", () => {

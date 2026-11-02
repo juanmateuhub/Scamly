@@ -66,7 +66,7 @@ aplica** y se registra como no disponible; nunca se inventa un valor.
 
 | Señal | Intensidad (grado) | Confianza | Peso | Motivo que ve el usuario |
 |---|---|---|---|---|
-| Precio anómalo | `r = precio / referencia`; lineal: 0 si `r ≥ 0,75`, 1 si `r ≤ 0,25` | 1,0 modelo exacto; 0,6 solo categoría | 40 | "Precio un X % por debajo de lo habitual" |
+| Precio anómalo | `factor_estado · lineal(r)`, `r = precio / referencia`: 0 si `r ≥ 0,75`, 1 si `r ≤ 0,25` | similares: `0,9·min(1,n/15)·(1−IQR/mediana)`; tabla: 1,0; categoría: 0,6 | 55 | "Precio un X % por debajo de lo habitual" |
 | Cuenta nueva | `exp(−días / 30)` (3 días ≈ 0,9; 30 ≈ 0,37; 90 ≈ 0,05) | 1,0 | 15 | "La cuenta se creó hace X días" |
 | Sin historial | `1 / (1 + (valoraciones + ventas) / 3)` | 1,0 | 10 | "El vendedor apenas tiene valoraciones" |
 | Malas valoraciones | `min(1, n/10) · clamp((3,5 − media) / 1,5)` | 1,0 | 20 | "El vendedor tiene malas valoraciones" |
@@ -131,6 +131,13 @@ El backend descarta accesorios, defectos y variantes distintas (`variant_words` 
 `reference_prices.yaml`: si el anuncio es "iPhone 17", fuera "Pro", "Max", "17e"...). Con ≥ 5
 similares, referencia = mediana; confianza = `0,9 · min(1, n/15) · clamp(1 − IQR/mediana)`.
 Con menos, se usa la tabla. `price_check` en la respuesta dice siempre con qué se comparó.
+
+**Estado del producto:** un artículo gastado puede ser barato con razón. La extensión envía el
+estado tal como lo muestra la plataforma (`condition`: "Sin abrir", "Como nuevo", "Muy bueno"…),
+`conditions` en `reference_prices.yaml` lo traduce a un nivel y `wear_phrases` ("arañazos",
+"desgaste"…) en la descripción lo rebaja como mucho a "aceptable". La intensidad del precio se
+multiplica por `condition_factors` (nuevo y como nuevo 1; buen estado 0,85; aceptable 0,6;
+dañado 0,3; desconocido 0,85). Los defectos graves (`defect_phrases`) anulan la señal.
 
 **Precio de referencia en la v1 (respaldo):** una tabla `data/reference_prices.yaml` con precios medios de
 segunda mano de productos muy estafados (consolas, iPhone, zapatillas populares, entradas):
