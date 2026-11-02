@@ -76,7 +76,9 @@ function readSeller(seller: unknown, now: Date): Seller {
   if (registered !== undefined) {
     result.account_age_days = Math.max(0, Math.floor((now.getTime() - registered) / DAY_MS));
   }
-  const ratings = asNumber(at(seller, "stats", "ratings", "reviews"));
+  // counters.reviews is the count shown on the page ("4,9 (76)"). Beware: stats.ratings.reviews
+  // is the score as a percentage (98 = 4,9 stars), not a count.
+  const ratings = asNumber(at(seller, "stats", "counters", "reviews"));
   if (ratings !== undefined) {
     result.ratings_count = ratings;
     const average = asNumber(at(seller, "stats", "ratingAverage"));

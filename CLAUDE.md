@@ -220,7 +220,7 @@ regulares. La extensión funciona aunque Ollama esté apagado, y el panel indica
   petición. Nada se ejecuta en páginas que el usuario no ha pedido analizar.
 - Selectores y rutas de datos, un archivo por plataforma (lo primero a revisar si deja de leer):
   - `src/content/wallapop.ts`: `script#__NEXT_DATA__` → `props.pageProps.item` y `itemSeller`
-    (`registerDate` en ms, `stats.ratings.reviews`, `stats.ratingAverage` 0–5, `counters.sold`).
+    (`registerDate` en ms, `stats.counters.reviews` = nº de valoraciones visible, `stats.ratingAverage` 0–5, `counters.sold`; ojo: `stats.ratings.reviews` es la nota en %, no un recuento).
     Next.js no actualiza `__NEXT_DATA__` al navegar sin recargar: si `item.slug` no coincide con
     la URL, se pide recargar.
   - `src/content/vinted.ts`: JSON-LD `Product` (nombre, descripción, precio, categoría) y

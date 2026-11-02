@@ -62,7 +62,8 @@ describe("extractWallapop", () => {
     const doc = withJson(fixture("wallapop-item.html"), "#__NEXT_DATA__", (data) => {
       const seller = (data as { props: { pageProps: { itemSeller: { stats: Record<string, unknown> } } } })
         .props.pageProps.itemSeller;
-      seller.stats = { ratings: { reviews: 40 }, ratingAverage: 4.5, counters: { sold: 25 } };
+      // ratings.reviews is the score in % (90 = 4,5 stars); the visible count is counters.reviews.
+      seller.stats = { ratings: { reviews: 90 }, ratingAverage: 4.5, counters: { reviews: 40, sold: 25 } };
     });
 
     const result = extractWallapop(doc, WALLAPOP_URL, NOW);
