@@ -81,6 +81,10 @@ aplica** y se registra como no disponible; nunca se inventa un valor.
 
 Cada frase de `phrases_es.yaml` lleva su propia `fuerza` ∈ [0, 1] ("solo Bizum" 1,0;
 "transferencia" 0,6…), así una mención ambigua cuenta menos que una petición explícita.
+`exemptions` anula una frase si en la misma cláusula (entre signos de puntuación) aparece un
+contexto que la explica: "bizum **al recoger**", "en mano", "en persona" no es pago fuera de la
+app. `texto_generico` solo aporta lo que no explica ya `descripcion_pobre`:
+`intensidad = LLM · (1 − intensidad de descripcion_pobre)`, para no contar dos veces lo mismo.
 
 ### Atenuantes
 
@@ -144,7 +148,7 @@ dañado 0,3; desconocido 0,85). Los defectos graves (`defect_phrases`) anulan la
 
 **Precio de referencia en la v1 (respaldo):** una tabla `data/reference_prices.yaml` con precios medios de
 segunda mano de productos muy estafados (consolas, iPhone, zapatillas populares, entradas):
-se empieza con 10 y se amplía a 30–50. Si el producto no está en la tabla, la señal de precio
+37 productos (consolas, iPhone 13–17, Galaxy S24/S25, AirPods, MacBook Air, zapatillas…), precios aproximados a revisar. Si el producto no está en la tabla, la señal de precio
 no se aplica y el panel lo indica. `skip_words` (accesorios, "busco") solo se buscan en el
 título, para que "con funda de regalo" en la descripción no anule la señal; `defect_phrases`
 ("pantalla rota", "no carga"…) se buscan en título y descripción porque explican un precio bajo.
@@ -177,8 +181,9 @@ cambiar a Ollama (`http://localhost:11434/v1`), Groq o Mistral es solo editar `L
 envían datos personales a un proveedor gratuito) y se eliminan las etiquetas `<anuncio>` del
 texto para que el anuncio no pueda cerrar el bloque de datos.
 
-**Caché** (`app/llm/cache.py`, SQLite en `backend/.cache/`): clave = hash de modelo + anuncio +
-texto; guarda solo las citas verificadas, 24 h. Los fallos no se guardan.
+**Caché** (`app/llm/cache.py`, SQLite en `backend/.cache/`): clave = hash de modelo + versión del
+prompt + anuncio + texto (cambiar el prompt invalida la caché); guarda solo las citas
+verificadas, 24 h. Los fallos no se guardan.
 
 **Prompt del sistema (borrador):**
 
@@ -229,6 +234,8 @@ regulares. La extensión funciona aunque Ollama esté apagado, y el panel indica
   - `src/content/vinted.ts`: JSON-LD `Product` (nombre, descripción, precio, categoría) y
     `.web_ui__Rating__rating` (aria-label "… X sobre 5", texto = nº de valoraciones). Vinted no
     muestra antigüedad ni ventas; todo pago va por la plataforma (`shipping_available: true`).
+- Iconos en `extension/icons/`, generados con `scripts/make_icons.py` (sin dependencias); la
+  compilación los copia a `dist/icons`.
 - El content script se compila aparte como un único IIFE (`vite.content.config.ts`) porque
   `chrome.scripting.executeScript` no admite `import`.
 - CORS del backend (`app/main.py`): solo `chrome-extension://<EXTENSION_ID>` (o cualquier
