@@ -1,9 +1,9 @@
-import { copyFileSync } from "node:fs";
+import { copyFileSync, cpSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { defineConfig, type Plugin } from "vitest/config";
 
-// Copies manifest.json into dist so `extension/dist` can be loaded unpacked in Chrome.
+// Copies manifest.json and icons/ into dist so `extension/dist` can be loaded unpacked in Chrome.
 function copyManifest(): Plugin {
   return {
     name: "copy-manifest",
@@ -11,6 +11,7 @@ function copyManifest(): Plugin {
     writeBundle() {
       const root = import.meta.dirname;
       copyFileSync(resolve(root, "manifest.json"), resolve(root, "dist/manifest.json"));
+      cpSync(resolve(root, "icons"), resolve(root, "dist/icons"), { recursive: true });
     },
   };
 }

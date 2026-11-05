@@ -37,7 +37,7 @@ jobs:
           ruff format --check . ../scripts
 
       - name: Mypy
-        run: mypy app tests ../scripts/evaluate.py
+        run: mypy app tests ../scripts/evaluate.py ../scripts/make_icons.py
 
       # No .env in CI: the LLM is disabled and every test runs offline (rules + fake LLM).
       - name: Pytest
