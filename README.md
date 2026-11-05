@@ -1,3 +1,5 @@
+<img src="docs/logo.png" alt="Logo de Scamly" width="72" align="left" />
+
 # Scamly
 
 [![CI](https://github.com/juanmateuhub/Scamly/actions/workflows/ci.yml/badge.svg)](https://github.com/juanmateuhub/Scamly/actions/workflows/ci.yml)
@@ -10,8 +12,20 @@
 riesgo de estafa y explica en español por qué.** No intenta adivinar si el producto es falso
 por la foto: analiza el rastro que deja el estafador (precio, vendedor y texto).
 
-<!-- TODO: grabar docs/demo.gif (10-15 s: abrir un anuncio, pulsar el icono, panel con motivos) -->
-![Demo: anuncio sospechoso con el panel de Scamly en rojo](docs/demo.gif)
+<table>
+  <tr>
+    <td align="center"><img src="docs/screenshots/panel-rojo.png" alt="Panel en rojo: pago por Bizum, WhatsApp, precio un 59 % por debajo, cuenta de 3 días" width="250" /></td>
+    <td align="center"><img src="docs/screenshots/panel-amarillo.png" alt="Panel en amarillo: descripción muy corta, cuenta nueva sin valoraciones" width="250" /></td>
+    <td align="center"><img src="docs/screenshots/panel-verde.png" alt="Panel en verde: vendedor con buen historial y precio en línea con 8 anuncios similares" width="250" /></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Alto riesgo</b><br/>pago fuera, WhatsApp, precio imposible</td>
+    <td align="center"><b>Revisa con cuidado</b><br/>cuenta nueva y texto mínimo</td>
+    <td align="center"><b>Sin señales claras</b><br/>buen vendedor, precio normal</td>
+  </tr>
+</table>
+
+<sub>Capturas del panel real con anuncios inventados (sin datos de terceros).</sub>
 
 ## El problema
 
