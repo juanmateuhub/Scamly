@@ -73,3 +73,38 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  docker:
+    name: Docker image (build, health, smoke test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No .env in CI: the image runs with phrase rules only.
+      - name: Build and start (waits for the healthcheck)
+        run: docker compose up -d --build --wait --wait-timeout 90
+
+      - name: Smoke test
+        run: |
+          curl -fsS http://127.0.0.1:8000/health
+          echo
+          body='{"platform": "wallapop", "listing_id": "ci-ps5", "title": "PS5 nueva precintada",
+                 "description": "Me voy del país, solo Bizum, escríbeme por WhatsApp",
+                 "price_eur": 180, "category": "consolas",
+                 "seller": {"account_age_days": 3, "ratings_count": 0, "sales_count": 0},
+                 "shipping_available": false, "image_count": 2}'
+          result=$(curl -fsS -X POST http://127.0.0.1:8000/analyze \
+            -H 'Content-Type: application/json' -d "$body")
+          echo "$result" | jq '{risk_score, level, reasons: [.reasons[].signal]}'
+          test "$(echo "$result" | jq -r .level)" = "rojo"
+
+      - name: Runs as a non-root user
+        run: test "$(docker compose exec -T backend id -u)" != "0"
+
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop
+        if: always()
+        run: docker compose down -v

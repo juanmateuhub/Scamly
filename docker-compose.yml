@@ -1,0 +1,29 @@
+# Backend in one command:  docker compose up -d --build
+# With a local LLM as well: docker compose --profile ollama up -d --build
+#   (then set LLM_BASE_URL=http://ollama:11434/v1 in .env and pull a model:
+#    docker compose exec ollama ollama pull qwen2.5:7b)
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: scamly-backend
+    ports:
+      - "127.0.0.1:8000:8000" # only this machine, not the local network
+    env_file:
+      - path: .env # optional: LLM key, EXTENSION_ID...
+        required: false
+    volumes:
+      - llm-cache:/srv/backend/.cache
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama
+    profiles: [ollama]
+    volumes:
+      - ollama-models:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  llm-cache:
+  ollama-models:

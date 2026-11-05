@@ -64,6 +64,9 @@ python -m venv .venv
 
 Queda en `http://localhost:8000` (documentación interactiva en `/docs`).
 
+Con Docker, desde la raíz y sin instalar Python: `docker compose up -d --build` (solo escucha en
+`127.0.0.1`; añade `--profile ollama` para tener también un LLM local).
+
 **2. Análisis de texto con IA (opcional)**: sin clave funciona solo con reglas en español.
 Copia `.env.example` a `.env` en la raíz y pon una clave de un proveedor compatible con la
 API de OpenAI (Groq u OpenRouter tienen plan gratuito). Reinicia el backend tras cambiarlo.

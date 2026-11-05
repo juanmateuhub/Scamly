@@ -7,8 +7,14 @@ de un anuncio abierto en Wallapop o Vinted España y explica los motivos en espa
 - Windows 11, Git Bash, PyCharm. Python 3.12, Node 24. La terminal integrada es PowerShell 5.1:
   sin `&&`, un comando por línea o separados con `;`.
 - CI: `.github/workflows/ci.yml` (ruff, mypy, pytest con cobertura ≥ 80 %, evaluación del split
-  `test` solo reglas; extensión: typecheck, vitest, build) en cada push a `main` y en cada PR.
+  `test` solo reglas; extensión: typecheck, vitest, build; Docker: build, healthcheck, `/analyze`
+  de la PS5 en rojo, usuario no root) en cada push a `main` y en cada PR.
 - Backend: `cd backend && uvicorn app.main:app --reload` (puerto 8000).
+- Docker (opcional, no instalado en el PC del autor; se prueba en la CI): `docker compose up -d
+  --build` desde la raíz. `backend/Dockerfile` usa el contexto de la raíz (necesita `data/`) y
+  mantiene la estructura `/srv/backend` + `/srv/data` porque las rutas se calculan desde
+  `app/config.py`. Usuario sin privilegios, healthcheck en `/health`, puerto solo en
+  `127.0.0.1`, `.env` opcional. Ollama como servicio opcional (`--profile ollama`).
 - Tests backend: `cd backend && pytest -q`. Lint: `ruff check . && mypy app`.
 - Extensión: `cd extension && npm run build`, cargar `extension/dist` en chrome://extensions.
   Tests: `npm test`. Vista previa del panel sin cargar la extensión: `npm run dev`

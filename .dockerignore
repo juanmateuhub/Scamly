@@ -1,0 +1,12 @@
+# Build context is the repo root: send only what the backend image needs.
+*
+!backend/pyproject.toml
+!backend/app
+!backend/app/**
+!data/reference_prices.yaml
+
+# Never, even inside the allowed folders.
+**/__pycache__
+**/*.pyc
+**/.env
+**/.env.*
