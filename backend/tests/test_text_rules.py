@@ -137,3 +137,40 @@ def test_points_combine_weight_intensity_and_confidence() -> None:
 def test_shipped_phrase_rules_are_valid() -> None:
     assert set(RULES.signals) == {"pago_fuera_app", "contacto_externo", "urgencia"}
     assert all(phrases for phrases in RULES.signals.values())
+
+
+# --- in-person payment is not "outside the platform" ----------------------------------------
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Pago por bizum en mano al recoger",
+        "Entrega en mano en Zaragoza, pago con Bizum al recogerla.",
+        "Recoger en Sevilla, pago en efectivo o bizum al recoger",
+        "Bizum cuando lo recojas en persona",
+    ],
+)
+def test_payment_on_pickup_in_person_does_not_count(text: str) -> None:
+    assert analyze(text)["pago_fuera_app"].intensity == 0
+
+
+def test_in_person_exemption_only_applies_to_the_same_clause() -> None:
+    result = analyze("Solo bizum por adelantado; se puede ver en mano")["pago_fuera_app"]
+
+    assert result.intensity == 1.0
+
+
+# --- seller abroad with own courier: pay first, receive never --------------------------------
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Estoy fuera de España por trabajo, mi agencia de transporte te la entrega tras el pago.",
+        "Te lo envío cuando me hagas el ingreso",
+        "Mi empresa de mensajería se lo lleva después del pago",
+    ],
+)
+def test_pay_first_own_courier_is_detected(text: str) -> None:
+    assert analyze(text)["pago_fuera_app"].intensity >= 0.8

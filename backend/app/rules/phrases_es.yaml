@@ -30,6 +30,13 @@ signals:
       strength: 0.6
     - pattern: '\bbizum\b'
       strength: 0.5
+    # Pay first, then "my" courier delivers (seller abroad / own transport): classic scam.
+    - pattern: '\b(?:te|se) (?:lo|la|los|las) (?:envio|mando|entrega|entregan|lleva|llevan)\b.{0,30}?\b(?:tras|despues del?|cuando (?:me )?(?:hagas|haga|recib\w+)) (?:el |la )?(?:pago|ingreso|bizum|transferencia)\b'
+      strength: 0.9
+    - pattern: '\b(?:mi|nuestra|una) (?:agencia|empresa) de (?:transporte|envios|mensajeria|paqueteria)\b'
+      strength: 0.8
+    - pattern: '\bestoy (?:fuera de (?:espana|el pais)|en el extranjero|trabajando fuera)\b'
+      strength: 0.4
 
   contacto_externo:
     - pattern: '(?<!\d)(?:\+?34[\s.-]?)?[6789](?:[\s.-]?\d){8}(?!\d)'   # Spanish phone
@@ -56,3 +63,9 @@ signals:
       strength: 0.6
     - pattern: '\b(?:me mudo|por mudanza)\b'
       strength: 0.3
+
+# A match is cancelled when one of these appears in the same clause (between punctuation).
+exemptions:
+  pago_fuera_app:
+    # Paying in person when collecting the item is not a payment outside the platform.
+    - '\b(?:en mano|al recoger\w*|en persona|cuando (?:lo |la |los |las )?recoj\w+|al entregar\w*|en la entrega)\b'

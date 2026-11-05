@@ -216,6 +216,17 @@ class PhraseRules(_Rules):
     # Words that cancel a match when they appear just before it in the same clause.
     negations: frozenset[str]
     signals: dict[TextSignalName, list[Phrase]]
+    # Regexes that cancel a signal's match when they appear anywhere in the same clause
+    # (e.g. "bizum al recoger" is an in-person payment, not a payment outside the platform).
+    exemptions: dict[TextSignalName, list[str]] = {}
+
+    @field_validator("exemptions")
+    @classmethod
+    def _check_exemptions(cls, value: dict[str, list[str]]) -> dict[str, list[str]]:
+        for patterns in value.values():
+            for pattern in patterns:
+                re.compile(pattern)
+        return value
 
 
 # --- reference_prices.yaml ------------------------------------------------------

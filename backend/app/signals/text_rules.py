@@ -42,16 +42,33 @@ def _is_negated(normalized: str, start: int, negations: frozenset[str]) -> bool:
     return any(word in negations for word in preceding)
 
 
+def _clause(normalized: str, start: int, end: int) -> str:
+    """The clause (between punctuation marks) that contains normalized[start:end]."""
+    before = [m.end() for m in _CLAUSE_BREAK.finditer(normalized, 0, start)]
+    after = _CLAUSE_BREAK.search(normalized, end)
+    return normalized[before[-1] if before else 0 : after.start() if after else len(normalized)]
+
+
+def _is_exempt(normalized: str, start: int, end: int, exemptions: Iterable[str]) -> bool:
+    clause = _clause(normalized, start, end)
+    return any(_compile(pattern).search(clause) for pattern in exemptions)
+
+
 def find_phrases(
-    text: str, phrases: Iterable[Phrase], negations: frozenset[str]
+    text: str,
+    phrases: Iterable[Phrase],
+    negations: frozenset[str],
+    exemptions: Iterable[str] = (),
 ) -> list[PhraseMatch]:
-    """Non-overlapping, non-negated matches, strongest first."""
+    """Non-overlapping matches that are neither negated nor exempt, strongest first."""
     normalized = normalize(text)
+    exemptions = list(exemptions)
     candidates = [
         PhraseMatch(m.start(), m.end(), phrase.strength, text[m.start() : m.end()])
         for phrase in phrases
         for m in _compile(phrase.pattern).finditer(normalized)
         if not _is_negated(normalized, m.start(), negations)
+        and not _is_exempt(normalized, m.start(), m.end(), exemptions)
     ]
     candidates.sort(key=lambda m: (-m.strength, m.start))
 
@@ -76,7 +93,9 @@ def text_rule_signals(
     text = f"{listing.title}\n{listing.description}"
     results = []
     for name, config in weights.items():
-        matches = find_phrases(text, rules.signals.get(name, []), rules.negations)
+        matches = find_phrases(
+            text, rules.signals.get(name, []), rules.negations, rules.exemptions.get(name, [])
+        )
         excerpts = list(dict.fromkeys(m.excerpt for m in matches))
         results.append(
             SignalResult(
