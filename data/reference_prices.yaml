@@ -71,6 +71,11 @@ variant_words:         # a comparable must have exactly the same ones as the lis
   - 17e
 
 products:
+  # --- consoles -------------------------------------------------------------
+  - name: PS5 Pro
+    category: consolas
+    price_eur: 650
+    aliases: [ps5 pro, playstation 5 pro]
   - name: PS5 Digital
     category: consolas
     price_eur: 330
@@ -80,6 +85,14 @@ products:
     price_eur: 400
     aliases: [ps5, playstation 5, play 5, play5]
     exclude: [digital, pro, mando, juego, "juegos ps5", "juegos de ps5", "juegos para ps5"]
+  - name: Xbox Series X
+    category: consolas
+    price_eur: 330
+    aliases: [xbox series x]
+  - name: Xbox Series S
+    category: consolas
+    price_eur: 180
+    aliases: [xbox series s]
   - name: Nintendo Switch 2
     category: consolas
     price_eur: 380
@@ -88,10 +101,61 @@ products:
     category: consolas
     price_eur: 220
     aliases: [switch oled]
+  - name: Nintendo Switch Lite
+    category: consolas
+    price_eur: 110
+    aliases: [switch lite]
+  - name: Nintendo Switch
+    category: consolas
+    price_eur: 150
+    aliases: [nintendo switch]
+    exclude: [oled, lite, "switch 2", juego, mando, joycon, joy-con]
   - name: Steam Deck OLED
     category: consolas
     price_eur: 450
     aliases: [steam deck oled]
+  - name: Steam Deck LCD
+    category: consolas
+    price_eur: 300
+    aliases: [steam deck lcd]
+
+  # --- phones ---------------------------------------------------------------
+  - name: iPhone 17 Pro Max
+    category: moviles
+    price_eur: 1100
+    aliases: [iphone 17 pro max]
+  - name: iPhone 17 Pro
+    category: moviles
+    price_eur: 900
+    aliases: [iphone 17 pro]
+    exclude: [max]
+  - name: iPhone Air
+    category: moviles
+    price_eur: 750
+    aliases: [iphone air]
+  - name: iPhone 17
+    category: moviles
+    price_eur: 700
+    aliases: [iphone 17]
+    exclude: [pro, max, air, "17e"]
+  - name: iPhone 16 Pro Max
+    category: moviles
+    price_eur: 850
+    aliases: [iphone 16 pro max]
+  - name: iPhone 16 Pro
+    category: moviles
+    price_eur: 720
+    aliases: [iphone 16 pro]
+    exclude: [max]
+  - name: iPhone 16
+    category: moviles
+    price_eur: 620
+    aliases: [iphone 16]
+    exclude: [pro, plus, "16e"]
+  - name: iPhone 15 Pro Max
+    category: moviles
+    price_eur: 700
+    aliases: [iphone 15 pro max]
   - name: iPhone 15 Pro
     category: moviles
     price_eur: 650
@@ -102,18 +166,77 @@ products:
     price_eur: 500
     aliases: [iphone 15]
     exclude: [pro, plus]
-  - name: iPhone 16
+  - name: iPhone 14
     category: moviles
-    price_eur: 620
-    aliases: [iphone 16]
-    exclude: [pro, plus, "16e"]
+    price_eur: 380
+    aliases: [iphone 14]
+    exclude: [pro, plus, max]
+  - name: iPhone 13
+    category: moviles
+    price_eur: 300
+    aliases: [iphone 13]
+    exclude: [pro, mini, max]
+  - name: Samsung Galaxy S25 Ultra
+    category: moviles
+    price_eur: 850
+    aliases: [galaxy s25 ultra, s25 ultra]
+  - name: Samsung Galaxy S25
+    category: moviles
+    price_eur: 550
+    aliases: [galaxy s25, samsung s25]
+    exclude: [ultra, plus, fe, edge]
+  - name: Samsung Galaxy S24
+    category: moviles
+    price_eur: 400
+    aliases: [galaxy s24, samsung s24]
+    exclude: [ultra, plus, fe]
+
+  # --- audio, watches, computers -------------------------------------------
   - name: AirPods Pro 2
     category: audio
     price_eur: 140
     aliases: [airpods pro 2, airpods pro segunda generacion]
+  - name: AirPods 4
+    category: audio
+    price_eur: 90
+    aliases: [airpods 4]
+  - name: AirPods Max
+    category: audio
+    price_eur: 320
+    aliases: [airpods max]
+  - name: Apple Watch Ultra 2
+    category: relojes
+    price_eur: 500
+    aliases: [apple watch ultra 2, watch ultra 2]
+  - name: MacBook Air M3
+    category: informatica
+    price_eur: 750
+    aliases: [macbook air m3]
+  - name: MacBook Air M2
+    category: informatica
+    price_eur: 600
+    aliases: [macbook air m2]
+  - name: Dyson V15
+    category: electrodomesticos
+    price_eur: 300
+    aliases: [dyson v15]
+
+  # --- sneakers -------------------------------------------------------------
   - name: Nike Dunk Low
     category: zapatillas
     price_eur: 90
     aliases: [dunk low]
+  - name: Air Jordan 1
+    category: zapatillas
+    price_eur: 150
+    aliases: [jordan 1, air jordan 1]
+  - name: Adidas Samba
+    category: zapatillas
+    price_eur: 60
+    aliases: [adidas samba]
+  - name: New Balance 550
+    category: zapatillas
+    price_eur: 60
+    aliases: [new balance 550]
 
 categories: {}         # fallback average per category (confidence 0.6); empty for now
