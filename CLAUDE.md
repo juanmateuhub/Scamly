@@ -234,8 +234,11 @@ regulares. La extensión funciona aunque Ollama esté apagado, y el panel indica
   - `src/content/vinted.ts`: JSON-LD `Product` (nombre, descripción, precio, categoría) y
     `.web_ui__Rating__rating` (aria-label "… X sobre 5", texto = nº de valoraciones). Vinted no
     muestra antigüedad ni ventas; todo pago va por la plataforma (`shipping_available: true`).
-- Iconos en `extension/icons/`, generados con `scripts/make_icons.py` (sin dependencias); la
-  compilación los copia a `dist/icons`.
+- Logo: "S" blanca geométrica sobre cuadrado redondeado con degradado verde. Iconos en
+  `extension/icons/` y `docs/logo.png`, generados con `scripts/make_icons.py` (sin
+  dependencias); la compilación los copia a `dist/icons`. El popup muestra cabecera con logo.
+- Capturas del README: `scripts/screenshots.py` (Chrome headless sobre la vista previa del panel
+  con anuncios inventados; necesita backend y `npm run dev` arrancados).
 - El content script se compila aparte como un único IIFE (`vite.content.config.ts`) porque
   `chrome.scripting.executeScript` no admite `import`.
 - CORS del backend (`app/main.py`): solo `chrome-extension://<EXTENSION_ID>` (o cualquier
