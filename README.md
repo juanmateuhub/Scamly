@@ -95,12 +95,17 @@ umbrales calibrados en `dev` (68) y las métricas en `test` (32), positivo = roj
 
 | Modo | Precisión | Recall | F1 |
 |---|---|---|---|
-| Solo reglas | 1,00 | 0,88 | 0,93 |
-| Reglas + LLM (`qwen/qwen3.8-27b` en Groq) | 1,00 | 0,94 | 0,97 |
+| Solo reglas | 1,00 | 0,94 | 0,97 |
+| Reglas + LLM (`qwen/qwen3.8-27b` en Groq) | 1,00 | 1,00 | 1,00 |
 
-Latencia del LLM: mediana 0,5 s. **Métricas orientativas y optimistas**: el dataset, las
-reglas y el prompt los escribió el mismo autor, y el dataset no incluye comparación de precios
-en vivo ni estado del producto. Reproducir: `python scripts/evaluate.py [--llm] --split test`.
+Ningún anuncio legítimo llega a rojo; 4 de 16 quedan en amarillo ("revisa con cuidado").
+Latencia del LLM: mediana 0,5 s (2026-11-05).
+
+**Métricas orientativas y optimistas**: el dataset, las reglas y el prompt los escribió el
+mismo autor; un fallo del split `test` (`s018`) se usó para añadir una regla, así que `test` ya
+no es del todo independiente; y el dataset no incluye comparación de precios en vivo ni estado
+del producto. El siguiente paso para medir de verdad es añadir anuncios reales anonimizados.
+Reproducir: `python scripts/evaluate.py [--llm] --split test -v`.
 
 ## Decisiones técnicas
 
