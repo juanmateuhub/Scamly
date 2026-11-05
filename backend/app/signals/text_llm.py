@@ -151,8 +151,10 @@ def combine_text_signals(
 
 
 def generic_text_signal(
-    findings: LlmFindings | None, config: LlmOnlySignalConfig
+    findings: LlmFindings | None, config: LlmOnlySignalConfig, short_description: float
 ) -> SignalResult | None:
+    """LLM says the text gives no concrete detail. `short_description` is the intensity of the
+    descripcion_pobre signal: what a very short text already explains is not counted twice."""
     if findings is None:
         return None
     quote = findings.quotes.get("texto_generico")
@@ -160,7 +162,7 @@ def generic_text_signal(
         signal="texto_generico",
         kind="risk",
         weight=config.weight,
-        intensity=1.0 if quote else 0.0,
+        intensity=(1.0 - short_description) if quote else 0.0,
         confidence=config.confidence,
         message=GENERIC_TEXT_MESSAGE,
         evidence=quote or "",

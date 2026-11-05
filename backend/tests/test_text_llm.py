@@ -171,15 +171,28 @@ def test_agreement_on_absence_raises_confidence() -> None:
 
 def test_generic_text_signal() -> None:
     weights = CONFIG.signals.texto_generico
+    found = LlmFindings(quotes={"texto_generico": "Buen estado"})
 
-    assert generic_text_signal(None, weights) is None
-    absent = generic_text_signal(LlmFindings(quotes={}), weights)
-    present = generic_text_signal(LlmFindings(quotes={"texto_generico": "Buen estado"}), weights)
+    assert generic_text_signal(None, weights, short_description=0.0) is None
+    absent = generic_text_signal(LlmFindings(quotes={}), weights, short_description=0.0)
+    present = generic_text_signal(found, weights, short_description=0.0)
     assert absent is not None
     assert absent.intensity == 0
     assert present is not None
     assert present.points == pytest.approx(10 * 0.7)
     assert present.evidence == "Buen estado"
+
+
+@pytest.mark.parametrize(("short", "expected"), [(0.0, 1.0), (0.6, 0.4), (1.0, 0.0)])
+def test_generic_text_only_adds_what_a_short_description_does_not_explain(
+    short: float, expected: float
+) -> None:
+    found = LlmFindings(quotes={"texto_generico": "Buen estado"})
+
+    result = generic_text_signal(found, CONFIG.signals.texto_generico, short_description=short)
+
+    assert result is not None
+    assert result.intensity == pytest.approx(expected)
 
 
 # --- service with cache -----------------------------------------------------------------
@@ -211,6 +224,18 @@ def test_cache_expires_and_changes_with_the_text(tmp_path: Path) -> None:
     service.findings_for(make_listing(description="b"), NOW + timedelta(hours=25))
 
     assert len(llm.calls) == 3
+
+
+def test_changing_the_prompt_invalidates_the_cache(tmp_path: Path) -> None:
+    llm = FakeLLM({})
+    cache = FindingsCache(tmp_path / "cache.db", ttl=timedelta(hours=24))
+    listing = make_listing(description="solo bizum")
+
+    LlmTextService(llm, cache, model_id="m", prompt_version="v1").findings_for(listing, NOW)
+    LlmTextService(llm, cache, model_id="m", prompt_version="v1").findings_for(listing, NOW)
+    LlmTextService(llm, cache, model_id="m", prompt_version="v2").findings_for(listing, NOW)
+
+    assert len(llm.calls) == 2
 
 
 def test_failures_are_not_cached(tmp_path: Path) -> None:
