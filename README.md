@@ -1,5 +1,7 @@
 # Scamly
 
+[![CI](https://github.com/juanmateuhub/Scamly/actions/workflows/ci.yml/badge.svg)](https://github.com/juanmateuhub/Scamly/actions/workflows/ci.yml)
+
 Extensión de Chrome que, al abrir un anuncio de Wallapop o Vinted España, muestra una
 puntuación de riesgo de estafa de 0 a 100 y explica en español los motivos.
 
