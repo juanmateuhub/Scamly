@@ -18,7 +18,8 @@ legal: si el proyecto se publicara en la Chrome Web Store, habría que revisarlo
   entrenar o revisarlas personas; por eso no se les envían datos personales.
 - **Secretos** (claves de API) solo en `.env`, que está en `.gitignore`.
 - **Dataset de evaluación**: anuncios sintéticos con teléfonos y emails ficticios
-  (`600 000 000`, `@example.com`); un test lo comprueba.
+  (`600 000 000`, `@example.com`); un test lo comprueba. Además, un split `real` con 66 anuncios
+  reales anonimizados (ver abajo).
 
 ## Sin acusaciones
 
@@ -48,6 +49,23 @@ personal, con estos límites:
 
 Si el proyecto dejara de ser personal, esta función habría que retirarla o sustituirla por un
 acuerdo o una fuente autorizada.
+
+## Decisión consciente: dataset de anuncios reales
+
+Para medir el detector fuera de los datos inventados, el 2026-11-26 se recogieron **66 anuncios
+reales** (una búsqueda por producto en cada web, 6 anuncios de cada una) con un recolector de
+desarrollo (`extension/dev/collector.ts`) que no forma parte de la extensión. Carga los anuncios
+de uno en uno y con pausa, con el mismo extractor que usa la extensión. Como la búsqueda de
+similares, **va contra las condiciones de uso** de Wallapop y Vinted.
+
+Antes de guardarlos, `scripts/import_real.py` los anonimiza: el ID del anuncio se sustituye por
+un hash, los teléfonos y emails por `[TELEFONO]` y `[EMAIL]`, se elimina la URL y del vendedor
+solo quedan recuentos y medias (valoraciones, ventas, antigüedad). Se conservan el título, la
+descripción, el precio y los títulos y precios de anuncios similares, porque son lo que el
+detector analiza; buscando el texto podría encontrarse el anuncio original. Las etiquetas
+(sospechoso o legítimo) son una propuesta sin verificar: no afirman que ningún vendedor concreto
+sea un estafador. Si alguien reconoce un anuncio suyo y quiere que se retire, basta con abrir un
+issue.
 
 ## Permisos mínimos
 
