@@ -1,0 +1,54 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "import",
+    "vitest"
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "eqeqeq": "error",
+    "no-restricted-properties": [
+      "error",
+      {
+        "property": "innerHTML",
+        "message": "Usa textContent: el texto del anuncio nunca va como HTML (XSS)."
+      },
+      {
+        "property": "outerHTML",
+        "message": "Usa textContent: el texto del anuncio nunca va como HTML (XSS)."
+      },
+      {
+        "property": "insertAdjacentHTML",
+        "message": "Usa textContent: el texto del anuncio nunca va como HTML (XSS)."
+      }
+    ],
+    "typescript/no-floating-promises": "error",
+    "typescript/no-misused-promises": "error",
+    "typescript/await-thenable": "error",
+    "typescript/no-unnecessary-type-assertion": "warn",
+    "no-underscore-dangle": "off",
+    "import/no-unassigned-import": "off",
+    "typescript/no-unsafe-type-assertion": "off",
+    "typescript/consistent-return": "off",
+    "vitest/require-mock-type-parameters": "off"
+  },
+  "ignorePatterns": [
+    "dist",
+    "node_modules"
+  ],
+  "overrides": [
+    {
+      "files": [
+        "tests/**"
+      ],
+      "rules": {
+        "no-restricted-properties": "off"
+      }
+    }
+  ]
+}
