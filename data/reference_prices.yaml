@@ -1,5 +1,8 @@
 # Average second-hand prices in Spain for frequently scammed products.
-# APPROXIMATE STARTING VALUES: review against real listings before publishing metrics.
+# APPROXIMATE STARTING VALUES. Entries marked "median of N real listings" come from the
+# similar listings collected with the real split (titles and prices only); the rest are still
+# estimates. PS5, Switch and AirPods were not updated: their searches mix games, accessories
+# and replicas, so the median is not the product's price.
 # Aliases and exclude words are matched on the title, lowercase and without accents.
 # Order matters: put specific models before generic ones.
 
@@ -103,7 +106,7 @@ products:
     aliases: [switch oled]
   - name: Nintendo Switch Lite
     category: consolas
-    price_eur: 110
+    price_eur: 100   # median of 30 real listings, 2026-11-26
     aliases: [switch lite]
   - name: Nintendo Switch
     category: consolas
@@ -140,30 +143,30 @@ products:
     exclude: [pro, max, air, "17e"]
   - name: iPhone 16 Pro Max
     category: moviles
-    price_eur: 850
+    price_eur: 700   # median of 34 real listings, 2026-11-26
     aliases: [iphone 16 pro max]
   - name: iPhone 16 Pro
     category: moviles
-    price_eur: 720
+    price_eur: 640   # median of 58 real listings, 2026-11-26
     aliases: [iphone 16 pro]
     exclude: [max]
   - name: iPhone 16
     category: moviles
-    price_eur: 620
+    price_eur: 500   # median of 43 real listings, 2026-11-26
     aliases: [iphone 16]
     exclude: [pro, plus, "16e"]
   - name: iPhone 15 Pro Max
     category: moviles
-    price_eur: 700
+    price_eur: 520   # median of 19 real listings, 2026-11-26
     aliases: [iphone 15 pro max]
   - name: iPhone 15 Pro
     category: moviles
-    price_eur: 650
+    price_eur: 460   # median of 45 real listings, 2026-11-26
     aliases: [iphone 15 pro]
     exclude: [max]
   - name: iPhone 15
     category: moviles
-    price_eur: 500
+    price_eur: 370   # median of 87 real listings, 2026-11-26
     aliases: [iphone 15]
     exclude: [pro, plus]
   - name: iPhone 14
@@ -214,7 +217,7 @@ products:
     aliases: [macbook air m3]
   - name: MacBook Air M2
     category: informatica
-    price_eur: 600
+    price_eur: 680   # median of 27 real listings, 2026-11-26
     aliases: [macbook air m2]
   - name: Dyson V15
     category: electrodomesticos
