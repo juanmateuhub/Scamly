@@ -302,5 +302,7 @@ visibles del anuncio, sin cookies ni datos del usuario.
 - Validación estricta con Pydantic: textos limitados a 5.000 caracteres, precio ≥ 0,
   plataforma en una lista cerrada.
 - CORS abierto solo al ID de la extensión y a `localhost`.
-- Límite de peticiones por IP (por ejemplo 30 por minuto) con `slowapi`.
+- Límite de peticiones por IP en `/analyze` con `slowapi` (`RATE_LIMIT`, por defecto `30/minute`;
+  en memoria, se reinicia con el backend). Al pasarse, 429 con `detail` en español; `/health`
+  no tiene límite. Los tests reinician la cuota en cada test (`conftest.py`).
 - Los ejemplos de esta sección son inventados y sirven como datos de test.

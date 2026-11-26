@@ -1,9 +1,12 @@
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi.errors import RateLimitExceeded
 
 from app import __version__
+from app.api.analyze import limiter
 from app.api.analyze import router as analyze_router
 from app.config import settings
 
@@ -25,7 +28,16 @@ def cors_options(extension_id: str) -> dict[str, Any]:
     }
 
 
+def rate_limited(request: Request, exc: Exception) -> JSONResponse:
+    """429 for clients over the per-IP quota (Exception: Starlette's handler signature)."""
+    return JSONResponse(
+        {"detail": "Demasiadas consultas seguidas. Espera un minuto."}, status_code=429
+    )
+
+
 app = FastAPI(title="Scamly API", version=__version__)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, rate_limited)
 app.add_middleware(CORSMiddleware, **cors_options(settings.extension_id))
 app.include_router(analyze_router)
 
