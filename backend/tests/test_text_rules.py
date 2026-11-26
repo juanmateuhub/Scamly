@@ -117,7 +117,13 @@ def test_prices_are_not_phone_numbers() -> None:
 
 
 @pytest.mark.parametrize(
-    "text", ["El primero que pague se lo lleva", "Urge vender hoy mismo", "Me voy de España"]
+    "text",
+    [
+        "El primero que pague se lo lleva",
+        "Urge vender hoy mismo",
+        "Me voy de España",
+        "Quedan pocas horas",
+    ],
 )
 def test_urgency_is_detected(text: str) -> None:
     assert analyze(text)["urgencia"].intensity > 0
@@ -169,6 +175,12 @@ def test_vinted_photo_listing_reaches_full_intensity() -> None:
 )
 def test_real_photos_are_not_a_photo_sale(text: str) -> None:
     assert analyze(text)["solo_foto"].intensity == 0
+
+
+def test_digital_delivery_after_payment_is_off_platform() -> None:
+    result = analyze("Te las paso por email cuando me hagas el ingreso")["pago_fuera_app"]
+
+    assert result.intensity == pytest.approx(0.9)
 
 
 def test_title_is_analyzed_too() -> None:
