@@ -7,6 +7,7 @@ from app.models.listing import Analysis, Listing, PriceCheck
 from app.rules.loader import PhraseRules, ReferencePrices, ScoringConfig
 from app.scoring.engine import combine
 from app.signals.base import SignalResult
+from app.signals.consistency import model_mismatch_signal
 from app.signals.description import short_description_signal
 from app.signals.price import price_signal
 from app.signals.seller import (
@@ -33,6 +34,7 @@ def analyze_listing(
     short_description = short_description_signal(listing, signals.descripcion_pobre)
     optional: dict[str, SignalResult | None] = {
         "precio_anomalo": price_signal(listing, reference, signals.precio_anomalo),
+        "modelo_distinto": model_mismatch_signal(listing, reference, signals.modelo_distinto),
         "cuenta_nueva": account_age_signal(listing, signals.cuenta_nueva),
         "sin_historial": history_signal(listing, signals.sin_historial),
         "malas_valoraciones": bad_ratings_signal(listing, signals.malas_valoraciones),

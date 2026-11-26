@@ -110,6 +110,20 @@ class ShortDescriptionConfig(_Rules):
         return self
 
 
+class ModelMismatchConfig(_Rules):
+    weight: Weight
+    confidence: Unit
+    # A clause matching one of these explains another model ("me compré el 16 Pro").
+    exemptions: list[str] = []
+
+    @field_validator("exemptions")
+    @classmethod
+    def _check_exemptions(cls, value: list[str]) -> list[str]:
+        for pattern in value:
+            re.compile(pattern)
+        return value
+
+
 class TextSignalConfig(_Rules):
     weight: Weight
 
@@ -148,6 +162,7 @@ class SignalsConfig(_Rules):
     sin_historial: HistoryConfig
     malas_valoraciones: BadRatingsConfig
     descripcion_pobre: ShortDescriptionConfig
+    modelo_distinto: ModelMismatchConfig
     pago_fuera_app: TextSignalConfig
     contacto_externo: TextSignalConfig
     urgencia: TextSignalConfig
@@ -197,6 +212,7 @@ class ScoringConfig(_Rules):
                 s.sin_historial,
                 s.malas_valoraciones,
                 s.descripcion_pobre,
+                s.modelo_distinto,
                 s.pago_fuera_app,
                 s.contacto_externo,
                 s.urgencia,

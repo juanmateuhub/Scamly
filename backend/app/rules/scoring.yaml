@@ -48,6 +48,11 @@ signals:           # risk signals: points = weight * intensity * confidence
     weight: 15
     full_risk_words: 5       # description words at or below -> intensity 1
     no_risk_words: 30        # at or above -> intensity 0
+  modelo_distinto:           # description promises a higher model than the title
+    weight: 15
+    confidence: 0.8          # model names are matched loosely
+    exemptions:              # clauses that explain another model (accents already removed)
+      - '\b(?:compr\w*|cambio|cambiar|compatible|paso al?|para el|por el|funda|carcasa|mejor que|como el|anterior)\b'
   pago_fuera_app:
     weight: 40
   contacto_externo:
