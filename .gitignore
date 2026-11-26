@@ -30,6 +30,7 @@ backend/.cache/
 # Node
 node_modules/
 extension/dist/
+extension/dist-dev/
 extension/coverage/
 *.zip
 

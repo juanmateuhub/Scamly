@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "oxlint --type-aware --deny-warnings .",
     "build": "tsc --noEmit && vite build && vite build -c vite.content.config.ts",
+    "build:collector": "vite build -c vite.collector.config.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "dev": "vite --port 5173 --strictPort --open /dev/panel-preview.html"

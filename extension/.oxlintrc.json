@@ -39,6 +39,7 @@
   },
   "ignorePatterns": [
     "dist",
+    "dist-dev",
     "node_modules"
   ],
   "overrides": [

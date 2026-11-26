@@ -19,11 +19,18 @@ class EvalItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: str
-    label: Literal["legitimo", "sospechoso"]
-    split: Literal["dev", "test"]  # tune weights on dev only; report test separately
+    # Real listings stay "sin_revisar" until the author labels them; they are left out of metrics.
+    label: Literal["legitimo", "sospechoso", "sin_revisar"]
+    # Tune weights on dev only; report test separately. "real": anonymized real listings,
+    # never used for tuning, reported on their own.
+    split: Literal["dev", "test", "real"]
     notes: str
     source: str
     listing: Listing
+
+    @property
+    def is_labeled(self) -> bool:
+        return self.label != "sin_revisar"
 
     @property
     def is_scam(self) -> bool:
