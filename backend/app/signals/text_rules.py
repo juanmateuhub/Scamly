@@ -16,6 +16,7 @@ MESSAGES: dict[TextSignalName, str] = {
     "pago_fuera_app": "Pide pagar fuera de la plataforma, sin protección",
     "contacto_externo": "Intenta llevar la conversación fuera de la app",
     "urgencia": "Mete prisa, táctica típica de estafa",
+    "solo_foto": "Vende una foto del producto, no el producto",
 }
 
 _CLAUSE_BREAK = re.compile(r"[.,;:!?¡¿\n]")
