@@ -129,10 +129,12 @@ def price_signal(
     level, condition_label = assess_condition(listing, reference)
     condition_factor = config.condition_factors[level or "desconocido"]
 
+    # A new item priced like a used one is already odd: its curve starts earlier.
+    shift = config.new_ratio_shift if level == "nuevo" else 0.0
+    no_risk, max_risk = config.ratio_no_risk + shift, config.ratio_max_risk + shift
+
     ratio = listing.price_eur / reference_price
-    intensity = condition_factor * clamp(
-        (config.ratio_no_risk - ratio) / (config.ratio_no_risk - config.ratio_max_risk)
-    )
+    intensity = condition_factor * clamp((no_risk - ratio) / (no_risk - max_risk))
     below_pct = round((1 - ratio) * 100)
     message = (
         f"Precio un {below_pct} % por debajo de lo habitual"

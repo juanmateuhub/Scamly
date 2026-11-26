@@ -415,3 +415,27 @@ def test_ordinal_marks_do_not_hide_the_model() -> None:
 
     assert result is not None
     assert result.evidence.startswith("50 € frente a 140 € (AirPods Pro 2)")
+
+
+# --- new items: references are mostly used items ---------------------------------------
+
+
+def test_new_items_start_risk_at_a_higher_ratio() -> None:
+    config = CONFIG.model_copy(update={"new_ratio_shift": 0.2})
+    items = comparables(*[600] * 15, title="iPhone 17")
+
+    def intensity(condition: str) -> float:
+        listing = make_listing(
+            title="iPhone 17", price_eur=480, comparables=items, condition=condition
+        )
+        result = price_signal(listing, REFERENCE, config)
+        assert result is not None
+        return result.intensity
+
+    assert intensity("Como nuevo") == 0  # 480 / 600 = 0.8: normal for a used item
+    assert intensity("Sin abrir") == pytest.approx((0.95 - 0.8) / 0.5)
+
+
+def test_shipped_new_ratio_shift_keeps_the_curve_valid() -> None:
+    price = load_scoring_config().signals.precio_anomalo
+    assert price.ratio_no_risk + price.new_ratio_shift < 1

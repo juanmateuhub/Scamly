@@ -58,6 +58,8 @@ class PriceConfig(_Rules):
     comparables: ComparablesConfig
     # A worn item can be cheap for a good reason: the price intensity is multiplied by this.
     condition_factors: dict[ConditionLevel | Literal["desconocido"], Unit]
+    # References are mostly used items: for a NEW item both ratios move up by this much.
+    new_ratio_shift: Annotated[float, Field(ge=0, lt=0.25)] = 0.0
 
     @model_validator(mode="after")
     def _check_condition_factors(self) -> Self:
