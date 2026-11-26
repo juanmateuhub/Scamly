@@ -10,6 +10,7 @@ dependencies = [
     "pydantic-settings==2.16.2",
     "uvicorn[standard]==0.54.0",
     "pyyaml==6.0.3",
+    "slowapi==0.1.10",    # per-IP rate limit on /analyze (each call may spend LLM quota)
     "httpx==0.28.1",      # HTTP client for the LLM API (already needed by the test client)
 ]
 

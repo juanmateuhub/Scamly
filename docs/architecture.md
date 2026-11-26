@@ -26,8 +26,8 @@ sin publicar otra versión de la extensión.
 ```
 backend/app/
 ├── main.py              # FastAPI, CORS (extensión + localhost), /health
-├── config.py            # ajustes desde .env (proveedor LLM, caché)
-├── api/analyze.py       # POST /analyze
+├── config.py            # ajustes desde .env (proveedor LLM, caché, límite)
+├── api/analyze.py       # POST /analyze, límite por IP (slowapi, RATE_LIMIT)
 ├── models/listing.py    # contrato de entrada y salida
 ├── rules/               # scoring.yaml (pesos), phrases_es.yaml (frases), loader.py
 ├── signals/             # una función pura por señal

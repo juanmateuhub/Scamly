@@ -6,11 +6,17 @@ from typing import Any
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.analyze import get_llm_service
+from app.api.analyze import get_llm_service, limiter
 from app.llm.cache import FindingsCache
 from app.llm.service import LlmTextService
 from app.main import app
 from tests.fakes import FakeLLM
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limit() -> None:
+    """Every test starts with a fresh per-IP quota (all test requests share one IP)."""
+    limiter.reset()
 
 
 @pytest.fixture

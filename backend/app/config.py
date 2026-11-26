@@ -31,6 +31,9 @@ class Settings(BaseSettings):
 
     extension_id: str = ""
 
+    # Requests per client IP on /analyze (slowapi syntax, e.g. "30/minute").
+    rate_limit: str = "30/minute"
+
     @property
     def llm_fallback_list(self) -> list[str]:
         return [m.strip() for m in self.llm_fallback_models.split(",") if m.strip()]

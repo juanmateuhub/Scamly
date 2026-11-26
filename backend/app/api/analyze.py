@@ -2,7 +2,9 @@ from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.config import settings
 from app.llm.cache import FindingsCache
@@ -13,6 +15,8 @@ from app.rules.loader import load_phrase_rules, load_reference_prices, load_scor
 from app.scoring.analyzer import analyze_listing
 
 router = APIRouter()
+# Per client IP; registered on the app in main.py. In-memory, so it resets on restart.
+limiter = Limiter(key_func=get_remote_address)
 
 
 @lru_cache
@@ -34,7 +38,9 @@ def get_llm_service() -> LlmTextService | None:
 
 
 @router.post("/analyze")
+@limiter.limit(lambda: settings.rate_limit)
 def analyze(
+    request: Request,  # read by the rate limiter
     listing: Listing,
     llm: Annotated[LlmTextService | None, Depends(get_llm_service)],
 ) -> Analysis:
