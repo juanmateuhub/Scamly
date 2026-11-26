@@ -11,6 +11,8 @@ from typing import Literal
 
 SignalKind = Literal["risk", "mitigator"]
 
+ORDINAL_MARKS = frozenset("ªº")
+
 
 @dataclass(frozen=True, slots=True)
 class SignalResult:
@@ -33,9 +35,13 @@ def clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
 
 
 def normalize(text: str) -> str:
-    """Lowercase and strip accents, keeping the same length so match spans map back."""
+    """Lowercase and strip accents, keeping the same length so match spans map back.
+    Ordinal marks become spaces: "AirPods Pro 2ª" must read as "airpods pro 2"."""
     chars = []
     for char in text:
+        if char in ORDINAL_MARKS:
+            chars.append(" ")
+            continue
         decomposed = unicodedata.normalize("NFKD", char)
         stripped = "".join(c for c in decomposed if not unicodedata.combining(c)).lower()
         chars.append(stripped if len(stripped) == 1 else char)

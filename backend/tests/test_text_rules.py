@@ -177,6 +177,17 @@ def test_real_photos_are_not_a_photo_sale(text: str) -> None:
     assert analyze(text)["solo_foto"].intensity == 0
 
 
+@pytest.mark.parametrize(
+    "text", ["Solo PayPal", "El envío y el pago no se realizan con Vinted", "No se hace por la app"]
+)
+def test_paying_outside_the_platform_is_detected(text: str) -> None:
+    assert analyze(text)["pago_fuera_app"].intensity >= 0.9
+
+
+def test_refusing_paypal_is_not_paying_outside() -> None:
+    assert analyze("No acepto PayPal ni Bizum: todo por Vinted")["pago_fuera_app"].intensity == 0
+
+
 def test_digital_delivery_after_payment_is_off_platform() -> None:
     result = analyze("Te las paso por email cuando me hagas el ingreso")["pago_fuera_app"]
 

@@ -8,8 +8,10 @@ negations: ["no", "sin", "nunca", "nada", "ni"]   # quoted: YAML reads bare `no`
 
 signals:
   pago_fuera_app:
-    - pattern: '\bsolo (?:acepto |por |con |mediante )?(?:bizum|transferencias?)\b'
+    - pattern: '\bsolo (?:acepto |por |con |mediante )?(?:bizum|transferencias?|paypal)\b'
       strength: 1.0
+    - pattern: '\bno (?:se )?(?:realiza\w*|hace\w*|hago|hacemos) (?:con|por|a traves de|mediante) (?:la app|la aplicacion|la plataforma|wallapop|vinted)\b'
+      strength: 0.9
     - pattern: '\bpaypal (?:amigos|familia|friends)\b'
       strength: 1.0
     - pattern: '\bfuera de (?:la app|la aplicacion|la plataforma|wallapop|vinted)\b'

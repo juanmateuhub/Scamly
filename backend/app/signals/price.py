@@ -75,21 +75,39 @@ def find_reference(
     """Return (reference price, confidence, label) for the listing, or None if unknown.
 
     Order: similar listings found now, then the reference table, then a category average.
+    The table wins when a replica-prone product is sold new and the similar listings cost less
+    than a share of the table price: a genuine sealed item is not that cheap, replicas are.
     """
     title = normalize(listing.title)
     full_text = normalize(f"{listing.title}\n{listing.description}")
     if _explains_low_price(title, full_text, reference):
         return None
 
+    product = next(
+        (
+            p
+            for p in reference.products
+            if any(contains_phrase(title, alias) for alias in p.aliases)
+            and not any(contains_phrase(title, word) for word in p.exclude)
+        ),
+        None,
+    )
     live = comparable_reference(listing, reference, config)
     if live is not None:
-        return live
-
-    for product in reference.products:
-        if any(contains_phrase(title, alias) for alias in product.aliases) and not any(
-            contains_phrase(title, word) for word in product.exclude
+        floor = config.comparables.min_ratio_to_table
+        level, _ = assess_condition(listing, reference)
+        sold_new = level in ("nuevo", "como_nuevo")
+        if (
+            product is None
+            or not (product.replica_prone and sold_new)
+            or live[0] >= floor * product.price_eur
         ):
-            return product.price_eur, config.confidence_product, product.name
+            return live
+        label = f"{product.name}; los similares salen demasiado baratos"
+        return product.price_eur, config.confidence_product, label
+
+    if product is not None:
+        return product.price_eur, config.confidence_product, product.name
 
     if listing.category is not None:
         category = normalize(listing.category)

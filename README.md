@@ -126,11 +126,14 @@ Reproducir: `python scripts/evaluate.py [--llm] --split test -v`.
 
 **Anuncios reales** (split `real`, 66 anuncios anonimizados de Wallapop y Vinted, 2026-11-26;
 etiquetas propuestas por Claude sin verificar, 9 dudosos sin etiquetar): solo reglas, positivo =
-rojo, precisión 1,00 y recall 0,25 (1 de 4 sospechosos; 2 de 4 contando amarillo). Ningún
-legítimo da falsa alarma (53 de 53 en verde), pero se escapan casos que los sintéticos no tenían:
-"solo paypal" y "el pago no se realiza con vinted", "AirPods Pro 2ª" (el ordinal impide reconocer
-el modelo) y réplicas a precio de réplica cuando los similares también lo son. Este split no se usa
-para ajustar reglas. `python scripts/evaluate.py --split real -v`.
+rojo, precisión 1,00 y recall 0,50 (2 de 4 sospechosos; 4 de 4 contando amarillo), sin falsas
+alarmas (53 de 53 legítimos en verde). La primera medición dio recall 0,25: se escapaban "solo
+paypal" / "el pago no se realiza con vinted", "AirPods Pro 2ª" (el ordinal impedía reconocer el
+modelo) y réplicas comparadas con similares que también eran réplicas. Esos tipos de fallo se
+corrigieron con casos inventados en `dev` (`s055`–`s057`, `l053`–`l054`), no ajustando sobre
+`real`, pero conocer los fallos ya resta independencia a este split; un primer intento de la regla
+de réplicas daba 3 falsas alarmas en `real` (accesorios de PS5) y se acotó por ello.
+`python scripts/evaluate.py --split real -v`.
 
 ## Decisiones técnicas
 
