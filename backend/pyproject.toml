@@ -20,6 +20,7 @@ dev = [
     "httpx2==2.16.0",     # backend for starlette.testclient (httpx there is deprecated)
     "pytest-cov==7.1.0",
     "ruff==0.17.3",
+    "pre-commit==4.7.0",  # runs ruff, oxlint and file checks before each commit
     "mypy==2.4.1",
     "types-PyYAML==6.0.12.20261030",
 ]
@@ -42,6 +43,10 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF"]
+
+[tool.ruff.lint.isort]
+# Explicit so import sorting is the same from backend/ (CI) and from the repo root (pre-commit).
+known-first-party = ["app", "tests"]
 
 [tool.mypy]
 python_version = "3.12"

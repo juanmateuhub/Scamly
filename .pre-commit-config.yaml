@@ -1,0 +1,38 @@
+# Fast checks before each commit (setup: pip install -e "backend[dev]", then pre-commit install).
+# mypy, pytest and vitest are slower and run in CI only.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: detect-private-key
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.17.3 # same version as backend/pyproject.toml
+    hooks:
+      - id: ruff-check
+        args: [--config, backend/pyproject.toml]
+      - id: ruff-format
+        args: [--config, backend/pyproject.toml]
+
+  - repo: local
+    hooks:
+      - id: no-env-files
+        name: never commit .env (secrets)
+        language: fail
+        entry: ".env files hold secrets; only .env.example belongs in the repo"
+        files: (^|/)\.env(\..+)?$
+        exclude: (^|/)\.env\.example$
+      - id: oxlint
+        name: oxlint (extension)
+        language: system
+        entry: npm --prefix extension run lint
+        files: ^extension/.*\.ts$
+        pass_filenames: false

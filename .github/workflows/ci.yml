@@ -68,6 +68,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Lint (oxlint)
+        run: npm run lint
+
       - name: Vitest
         run: npm test
 
