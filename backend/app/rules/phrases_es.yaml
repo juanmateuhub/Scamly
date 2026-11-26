@@ -31,7 +31,8 @@ signals:
     - pattern: '\bbizum\b'
       strength: 0.5
     # Pay first, then "my" courier delivers (seller abroad / own transport): classic scam.
-    - pattern: '\b(?:te|se) (?:lo|la|los|las) (?:envio|mando|entrega|entregan|lleva|llevan)\b.{0,30}?\b(?:tras|despues del?|cuando (?:me )?(?:hagas|haga|recib\w+)) (?:el |la )?(?:pago|ingreso|bizum|transferencia)\b'
+    # Digital goods too ("te las paso por email cuando me hagas el ingreso").
+    - pattern: '\b(?:te|se) (?:lo|la|los|las) (?:envio|mando|paso|pasare|entrega|entregan|lleva|llevan)\b.{0,30}?\b(?:tras|despues del?|cuando (?:me )?(?:hagas|haga|recib\w+)) (?:el |la )?(?:pago|ingreso|bizum|transferencia)\b'
       strength: 0.9
     - pattern: '\b(?:mi|nuestra|una) (?:agencia|empresa) de (?:transporte|envios|mensajeria|paqueteria)\b'
       strength: 0.8
@@ -61,6 +62,8 @@ signals:
       strength: 0.7
     - pattern: '\bsolo (?:por )?hoy\b'
       strength: 0.6
+    - pattern: '\bquedan? (?:muy )?(?:pocas|unas pocas) (?:horas|unidades|entradas)\b'
+      strength: 0.7
     - pattern: '\b(?:me mudo|por mudanza)\b'
       strength: 0.3
   solo_foto:          # the listing sells a picture of the item, not the item
