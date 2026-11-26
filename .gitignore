@@ -38,3 +38,7 @@ extension/coverage/
 .vscode/
 Thumbs.db
 .DS_Store
+
+# Local screenshots of real listings (seller data): never commit
+/Captura de pantalla*.png
+/Screenshot*.png
