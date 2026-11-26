@@ -7,7 +7,7 @@ de un anuncio abierto en Wallapop o Vinted España y explica los motivos en espa
 - Windows 11, Git Bash, PyCharm. Python 3.12, Node 24. La terminal integrada es PowerShell 5.1:
   sin `&&`, un comando por línea o separados con `;`.
 - CI: `.github/workflows/ci.yml` (ruff, mypy, pytest con cobertura ≥ 80 %, evaluación del split
-  `test` solo reglas; extensión: typecheck, vitest, build; Docker: build, healthcheck, `/analyze`
+  `test` solo reglas; extensión: typecheck, oxlint, vitest, build; Docker: build, healthcheck, `/analyze`
   de la PS5 en rojo, usuario no root) en cada push a `main` y en cada PR.
 - Backend: `cd backend && uvicorn app.main:app --reload` (puerto 8000).
 - Docker (opcional, no instalado en el PC del autor; se prueba en la CI): `docker compose up -d
@@ -16,8 +16,12 @@ de un anuncio abierto en Wallapop o Vinted España y explica los motivos en espa
   `app/config.py`. Usuario sin privilegios, healthcheck en `/health`, puerto solo en
   `127.0.0.1`, `.env` opcional. Ollama como servicio opcional (`--profile ollama`).
 - Tests backend: `cd backend && pytest -q`. Lint: `ruff check . && mypy app`.
+- pre-commit (`.pre-commit-config.yaml`, en el `[dev]` del backend): `backend/.venv/Scripts/pre-commit
+  install` una vez; antes de cada commit pasa ruff (con `backend/pyproject.toml`), oxlint, finales
+  de línea LF y bloqueo de `.env`. mypy y los tests solo en la CI.
 - Extensión: `cd extension && npm run build`, cargar `extension/dist` en chrome://extensions.
-  Tests: `npm test`. Vista previa del panel sin cargar la extensión: `npm run dev`
+  Tests: `npm test`. Lint: `npm run lint` (oxlint `--type-aware`: ESLint no sirve con TypeScript 7,
+  que ya no trae API de JS; reglas en `.oxlintrc.json`, prohíbe `innerHTML` fuera de tests). Vista previa del panel sin cargar la extensión: `npm run dev`
   (`dev/panel-preview.html`, anuncio en el `#` de la URL; necesita el backend arrancado).
 - Evaluación: `backend/.venv/Scripts/python scripts/evaluate.py [--llm] [--split dev|test] [-v]`
   sobre `data/eval/listings.jsonl` (100 anuncios sintéticos, 50/50). Ajusta pesos solo con

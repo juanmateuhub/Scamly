@@ -171,6 +171,8 @@ Detalle en [`docs/ethics.md`](docs/ethics.md).
 | Tests backend | `backend`: `.venv\Scripts\python -m pytest -q --cov` |
 | Lint y tipos | `backend`: `.venv\Scripts\ruff check .` y `.venv\Scripts\mypy app tests` |
 | Tests extensión | `extension`: `npm test` |
+| Lint extensión | `extension`: `npm run lint` (oxlint con tipos) |
+| Hooks pre-commit | raíz, una vez: `backend\.venv\Scripts\pre-commit install` (ruff, oxlint, archivos) |
 | Vista previa del panel | `extension`: `npm run dev` (con el backend arrancado) |
 | Evaluación | raíz: `backend\.venv\Scripts\python scripts\evaluate.py --split test -v` |
 
