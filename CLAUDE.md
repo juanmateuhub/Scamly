@@ -173,6 +173,9 @@ estado tal como lo muestra la plataforma (`condition`: "Sin abrir", "Como nuevo"
 "desgaste"…) en la descripción lo rebaja como mucho a "aceptable". La intensidad del precio se
 multiplica por `condition_factors` (nuevo y como nuevo 1; buen estado 0,85; aceptable 0,6;
 dañado 0,3; desconocido 0,85). Los defectos graves (`defect_phrases`) anulan la señal.
+Como las referencias son casi siempre de segunda mano, para estado `nuevo` ("Sin abrir", "Nuevo")
+los dos umbrales suben `new_ratio_shift` (0,2: riesgo desde `r < 0,95`, máximo en `r ≤ 0,45`).
+"Como nuevo" no se desplaza: es el estado más habitual en Wallapop.
 
 **Precio de referencia en la v1 (respaldo):** una tabla `data/reference_prices.yaml` con precios medios de
 segunda mano de productos muy estafados (consolas, iPhone, zapatillas populares, entradas):
