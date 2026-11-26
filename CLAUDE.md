@@ -171,7 +171,9 @@ dañado 0,3; desconocido 0,85). Los defectos graves (`defect_phrases`) anulan la
 
 **Precio de referencia en la v1 (respaldo):** una tabla `data/reference_prices.yaml` con precios medios de
 segunda mano de productos muy estafados (consolas, iPhone, zapatillas populares, entradas):
-37 productos (consolas, iPhone 13–17, Galaxy S24/S25, AirPods, MacBook Air, zapatillas…), precios aproximados a revisar. Si el producto no está en la tabla, la señal de precio
+37 productos (consolas, iPhone 13–17, Galaxy S24/S25, AirPods, MacBook Air, zapatillas…), precios aproximados; iPhone 15/16, Switch Lite y MacBook Air M2 ya son la mediana de los
+similares del split `real` (2026-11-26). PS5, Switch y AirPods no: sus búsquedas mezclan juegos,
+accesorios y réplicas (la mediana de AirPods Pro 2 sale 60 €). Si el producto no está en la tabla, la señal de precio
 no se aplica y el panel lo indica. `skip_words` (accesorios, "busco") solo se buscan en el
 título, para que "con funda de regalo" en la descripción no anule la señal; `defect_phrases`
 ("pantalla rota", "no carga"…) se buscan en título y descripción porque explican un precio bajo.
