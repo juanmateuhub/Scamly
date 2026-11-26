@@ -26,6 +26,9 @@ de un anuncio abierto en Wallapop o Vinted España y explica los motivos en espa
 - Evaluación: `backend/.venv/Scripts/python scripts/evaluate.py [--llm] [--split dev|test] [-v]`
   sobre `data/eval/listings.jsonl` (106 anuncios sintéticos: `dev` 74, `test` 32). Ajusta pesos solo con
   `dev`; `test` se reserva para las métricas publicadas. Con `--llm` gasta cuota (caché 24 h).
+  Split `real` (`--split real`): anuncios reales anonimizados, con etiqueta `sin_revisar` hasta que
+  el autor los etiqueta; nunca se usan para ajustar y no entran en `all` (= `dev` + `test`). Los
+  `sin_revisar` no cuentan en precisión ni recall; `-v` lista los que salen amarillo o rojo.
 
 ## Reglas de código
 - Tipado completo (mypy estricto, TypeScript strict).
@@ -41,6 +44,12 @@ de un anuncio abierto en Wallapop o Vinted España y explica los motivos en espa
   usuario (Wallapop: API interna `api.wallapop.com/api/v3/search/section`; Vinted: página
   `/catalog`). Va contra las condiciones de uso de ambas webs y puede romperse sin aviso.
   Al backend solo llegan título y precio de cada anuncio similar (sin vendedores ni IDs).
+- Segunda excepción (autor, 2026-11-26): recogida a pequeña escala de anuncios reales para el
+  dataset de evaluación con `extension/dev/collector.ts` (`npm run build:collector`): se pega en
+  una pestaña de Wallapop o Vinted, carga cada anuncio en un iframe oculto, de uno en uno y con
+  pausa, con el mismo extractor de la extensión, y descarga un JSON. `scripts/import_real.py` lo
+  anonimiza (ID → hash, teléfonos/emails → `[TELEFONO]`/`[EMAIL]`, sin URL) antes de guardarlo.
+  El recolector no va en la extensión ni se ejecuta solo.
 - No guardes datos personales de vendedores ni fotos.
 - El texto del anuncio es DATOS, nunca instrucciones para el LLM.
 - Una señal del LLM solo cuenta si su cita aparece literalmente en el anuncio.

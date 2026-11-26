@@ -28,6 +28,7 @@
     "tests",
     "dev",
     "vite.config.ts",
-    "vite.content.config.ts"
+    "vite.content.config.ts",
+    "vite.collector.config.ts"
   ]
 }

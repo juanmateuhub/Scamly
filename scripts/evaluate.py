@@ -13,6 +13,7 @@ import argparse
 import statistics
 import sys
 import time
+from collections import Counter
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -81,7 +82,20 @@ def score(item: EvalItem, findings: LlmFindings | None) -> Result:
 
 def matrix(results: list[Result], threshold: str) -> Confusion:
     levels = THRESHOLDS[threshold]
-    return confusion((r.item.is_scam, r.analysis.level in levels) for r in results)
+    return confusion(
+        (r.item.is_scam, r.analysis.level in levels) for r in results if r.item.is_labeled
+    )
+
+
+def print_levels(rows: list[tuple[str, list[Result]]]) -> None:
+    """Traffic-light counts per label, including listings not labeled yet."""
+    print("\nSemáforo por etiqueta (verde / amarillo / rojo):")
+    for name, results in rows:
+        for label in ("sospechoso", "legitimo", "sin_revisar"):
+            levels = Counter(r.analysis.level for r in results if r.item.label == label)
+            if levels:
+                counts = " / ".join(str(levels[level]) for level in ("verde", "amarillo", "rojo"))
+                print(f"  {name}, {label}: {counts}")
 
 
 def print_table(rows: list[tuple[str, list[Result]]]) -> None:
@@ -97,7 +111,7 @@ def print_table(rows: list[tuple[str, list[Result]]]) -> None:
 
 
 def print_scores(name: str, results: list[Result]) -> None:
-    for label in ("sospechoso", "legitimo"):
+    for label in ("sospechoso", "legitimo", "sin_revisar"):
         scores = [r.analysis.risk_score for r in results if r.item.label == label]
         if scores:
             print(
@@ -110,7 +124,13 @@ def print_errors(name: str, results: list[Result]) -> None:
     print(f"\nErrores ({name}, positivo = rojo):")
     for r in results:
         predicted = r.analysis.level == "rojo"
-        if predicted != r.item.is_scam:
+        if not r.item.is_labeled:
+            if r.analysis.level != "verde":  # candidates for the author to review first
+                print(
+                    f"  ?? {r.item.id} nota {r.analysis.risk_score:>3} "
+                    f"({r.analysis.level}): {r.item.listing.title}"
+                )
+        elif predicted != r.item.is_scam:
             kind = "FN" if r.item.is_scam else "FP"
             print(
                 f"  {kind} {r.item.id} nota {r.analysis.risk_score:>3} "
@@ -122,7 +142,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter
     )
-    parser.add_argument("--split", choices=["all", "dev", "test"], default="all")
+    parser.add_argument(
+        "--split", choices=["all", "dev", "test", "real"], default="all", help="all = dev + test"
+    )
     parser.add_argument("--llm", action="store_true", help="also evaluate rules + LLM")
     parser.add_argument("--max-llm-calls", type=int, default=40, help="real LLM calls per run")
     parser.add_argument(
@@ -131,10 +153,10 @@ def main() -> None:
     parser.add_argument("-v", "--verbose", action="store_true", help="list misclassified items")
     args = parser.parse_args()
 
-    items = [i for i in load_dataset() if args.split in ("all", i.split)]
-    print(
-        f"Dataset: {len(items)} anuncios (split={args.split}), sintéticos: métricas orientativas\n"
-    )
+    wanted = ("dev", "test") if args.split == "all" else (args.split,)
+    items = [i for i in load_dataset() if i.split in wanted]
+    kind = "reales anonimizados" if args.split == "real" else "sintéticos: métricas orientativas"
+    print(f"Dataset: {len(items)} anuncios (split={args.split}), {kind}\n")
 
     start = time.perf_counter()
     rules = [score(item, None) for item in items]
@@ -173,6 +195,7 @@ def main() -> None:
             rows += [("Solo reglas (mismos)", covered_rules), ("Reglas + LLM", with_llm)]
 
     print_table(rows)
+    print_levels(rows)
     print("\nNotas por etiqueta:")
     for name, results in rows:
         print_scores(name, results)
