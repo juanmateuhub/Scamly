@@ -1,34 +1,66 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Scamly
 
 Extensión de Chrome + backend FastAPI que puntúa de 0 a 100 el riesgo de estafa
 de un anuncio abierto en Wallapop o Vinted España y explica los motivos en español.
 
 ## Entorno
-- Windows 11, Git Bash, PyCharm. Python 3.12, Node 24. La terminal integrada es PowerShell 5.1:
-  sin `&&`, un comando por línea o separados con `;`.
-- CI: `.github/workflows/ci.yml` (ruff, mypy, pytest con cobertura ≥ 80 %, evaluación del split
-  `test` solo reglas; extensión: typecheck, oxlint, vitest, build; Docker: build, healthcheck, `/analyze`
-  de la PS5 en rojo, usuario no root) en cada push a `main` y en cada PR.
-- Backend: `cd backend && uvicorn app.main:app --reload` (puerto 8000).
+- Windows 11, Git Bash, PyCharm. Python 3.12 (`backend/.venv`), Node 24. La terminal integrada es
+  PowerShell 5.1: sin `&&`, un comando por línea o separados con `;`.
+- Secretos y proveedor LLM en `.env` (raíz, ver `.env.example`). El backend con `--reload` no vigila
+  los YAML ni `.env`: reinícialo tras cambiarlos.
 - Docker (opcional, no instalado en el PC del autor; se prueba en la CI): `docker compose up -d
   --build` desde la raíz. `backend/Dockerfile` usa el contexto de la raíz (necesita `data/`) y
   mantiene la estructura `/srv/backend` + `/srv/data` porque las rutas se calculan desde
   `app/config.py`. Usuario sin privilegios, healthcheck en `/health`, puerto solo en
   `127.0.0.1`, `.env` opcional. Ollama como servicio opcional (`--profile ollama`).
-- Tests backend: `cd backend && pytest -q`. Lint: `ruff check . && mypy app`.
+- CI (`.github/workflows/ci.yml`, cada push a `main` y cada PR): backend (ruff, mypy de `app`,
+  `tests` y `scripts/`, pytest con cobertura ≥ 80 %, evaluación del split `test` solo reglas),
+  extensión (typecheck, oxlint, vitest, build) y Docker (build, healthcheck, `/analyze` de la PS5
+  en rojo, usuario no root).
 - pre-commit (`.pre-commit-config.yaml`, en el `[dev]` del backend): `backend/.venv/Scripts/pre-commit
   install` una vez; antes de cada commit pasa ruff (con `backend/pyproject.toml`), oxlint, finales
   de línea LF y bloqueo de `.env`. mypy y los tests solo en la CI.
-- Extensión: `cd extension && npm run build`, cargar `extension/dist` en chrome://extensions.
-  Tests: `npm test`. Lint: `npm run lint` (oxlint `--type-aware`: ESLint no sirve con TypeScript 7,
-  que ya no trae API de JS; reglas en `.oxlintrc.json`, prohíbe `innerHTML` fuera de tests). Vista previa del panel sin cargar la extensión: `npm run dev`
-  (`dev/panel-preview.html`, anuncio en el `#` de la URL; necesita el backend arrancado).
-- Evaluación: `backend/.venv/Scripts/python scripts/evaluate.py [--llm] [--split dev|test] [-v]`
-  sobre `data/eval/listings.jsonl` (106 anuncios sintéticos: `dev` 74, `test` 32). Ajusta pesos solo con
-  `dev`; `test` se reserva para las métricas publicadas. Con `--llm` gasta cuota (caché 24 h).
-  Split `real` (`--split real`): anuncios reales anonimizados, con etiqueta `sin_revisar` hasta que
-  el autor los etiqueta; nunca se usan para ajustar y no entran en `all` (= `dev` + `test`). Los
-  `sin_revisar` no cuentan en precisión ni recall; `-v` lista los que salen amarillo o rojo.
+
+## Comandos
+| Qué | Comando |
+|---|---|
+| Backend | `cd backend; .venv/Scripts/python -m uvicorn app.main:app --reload` (puerto 8000) |
+| Tests backend | `cd backend; .venv/Scripts/python -m pytest -q` (un test: `pytest tests/test_price.py::test_ordinal_marks_do_not_hide_the_model -q`) |
+| Lint backend | `cd backend; .venv/Scripts/ruff check .; .venv/Scripts/ruff format --check .; .venv/Scripts/mypy app tests` |
+| Extensión | `cd extension; npm run build` y cargar `extension/dist` en chrome://extensions |
+| Tests extensión | `npm test` (un archivo: `npx vitest run tests/panel.test.ts`; por nombre: `-t "maps HTTP"`) |
+| Lint extensión | `npm run typecheck; npm run lint` (oxlint `--type-aware`: ESLint no sirve con TypeScript 7, que ya no trae API de JS; reglas en `.oxlintrc.json`, prohíbe `innerHTML` fuera de tests) |
+| Vista previa del panel | `npm run dev` (`dev/panel-preview.html`, anuncio en el `#` de la URL; necesita el backend) |
+| Evaluación | `backend/.venv/Scripts/python scripts/evaluate.py [--llm] [--split dev\|test\|real] [-v]` |
+| Anuncios reales | `npm run build:collector`, pegar `dist-dev/collector.js` en una pestaña y `scripts/import_real.py <json>` |
+
+Dataset `data/eval/listings.jsonl`: `dev` 83 y `test` 32 sintéticos, `real` 66 anonimizados.
+Ajusta pesos solo con `dev`; `test` se reserva para las métricas publicadas (ya algo contaminado:
+`s018`, `s030`). `real` nunca se usa para ajustar y no entra en `all` (= `dev` + `test`); sus
+etiquetas las propuso Claude sin verificar (las de confianza baja lo dicen en `notes`); los
+`sin_revisar` no cuentan en precisión ni recall. Con `--llm` gasta cuota (caché 24 h; con Groq,
+`--delay-s 8`).
+
+## Arquitectura
+Flujo de un análisis (detalle en `docs/architecture.md`):
+1. El popup (`extension/src/panel/panel.ts`) inyecta `dist/content.js` en la pestaña activa.
+   `src/content/extract.ts` elige plataforma (`wallapop.ts` / `vinted.ts`), lee el anuncio y hace
+   una búsqueda de similares. El popup envía el `ListingPayload` (`src/shared/types.ts`, espejo de
+   `backend/app/models/listing.py`) a `POST /analyze`.
+2. `app/api/analyze.py` (límite por IP) llama a `app/scoring/analyzer.py`, que ejecuta todas las
+   señales puras de `app/signals/` con su configuración de `app/rules/*.yaml` y
+   `data/reference_prices.yaml` (cargadas y validadas en `app/rules/loader.py`).
+3. El texto pasa por reglas (`text_rules.py`) y, si hay `LLM_API_KEY`, por el LLM
+   (`app/llm/service.py` + caché SQLite); `text_llm.combine_text_signals` los une sin que el LLM
+   pueda bajar una detección.
+4. `app/scoring/engine.py` combina con noisy-OR, aplica atenuantes, semáforo y fiabilidad.
+Añadir una señal: función pura en `app/signals/`, su config en `loader.py` (`SignalsConfig` y
+`total_risk_weight`) y `scoring.yaml`, llamarla en `analyzer.py`, tests y casos en `dev`. El panel
+muestra cualquier motivo sin cambios.
 
 ## Reglas de código
 - Tipado completo (mypy estricto, TypeScript strict).
