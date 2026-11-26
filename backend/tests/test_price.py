@@ -20,7 +20,9 @@ CONFIG = PriceConfig(
     ratio_max_risk=0.25,
     confidence_product=1.0,
     confidence_category=0.6,
-    comparables=ComparablesConfig(min_count=5, full_count=15, max_confidence=0.9),
+    comparables=ComparablesConfig(
+        min_count=5, full_count=15, max_confidence=0.9, min_ratio_to_table=0.5
+    ),
     condition_factors={
         "nuevo": 1.0,
         "como_nuevo": 1.0,
@@ -61,6 +63,13 @@ REFERENCE = ReferencePrices(
             price_eur=500,
             aliases=["iphone 15"],
             exclude=["pro", "plus"],
+        ),
+        ReferenceProduct(
+            name="AirPods Pro 2",
+            category="audio",
+            price_eur=140,
+            aliases=["airpods pro 2"],
+            replica_prone=True,
         ),
     ],
     categories={"zapatillas": 80},
@@ -362,3 +371,47 @@ def test_wear_never_improves_a_worse_condition() -> None:
 
     assert result is not None
     assert math.isclose(result.intensity, 0.3)
+
+
+# --- replica-prone products: a search full of copies is not the market price ---------
+
+
+def replica_signal(condition: str, title: str = "AirPods Pro 2") -> SignalResult | None:
+    items = comparables(48, 50, 52, 55, 58, 60, title="AirPods Pro 2")
+    listing = make_listing(title=title, price_eur=50, comparables=items, condition=condition)
+    return price_signal(listing, REFERENCE, CONFIG)
+
+
+def test_sealed_replica_prone_item_ignores_replica_priced_comparables() -> None:
+    result = replica_signal("Sin abrir")
+
+    assert result is not None
+    assert "AirPods Pro 2; los similares salen demasiado baratos" in result.evidence
+    assert result.intensity == pytest.approx((0.75 - 50 / 140) / 0.5)
+
+
+def test_used_replica_prone_item_keeps_the_comparables() -> None:
+    result = replica_signal("En buen estado")
+
+    assert result is not None
+    assert "mediana de 6 anuncios similares" in result.evidence
+
+
+def test_cheap_comparables_of_other_products_are_kept() -> None:
+    """A PS5 controller searches PS5 controllers: cheap, but not replicas of a PS5."""
+    items = comparables(40, 45, 50, 55, 60, title="Mando PS5")
+    listing = make_listing(
+        title="Mando PS5", price_eur=45, comparables=items, condition="Sin abrir"
+    )
+
+    result = price_signal(listing, REFERENCE, CONFIG)
+
+    assert result is not None
+    assert result.intensity == 0
+
+
+def test_ordinal_marks_do_not_hide_the_model() -> None:
+    result = signal_for("AirPods Pro 2ª generación", 50)
+
+    assert result is not None
+    assert result.evidence.startswith("50 € frente a 140 € (AirPods Pro 2)")

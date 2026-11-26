@@ -161,6 +161,11 @@ El backend descarta accesorios, defectos y variantes distintas (`variant_words` 
 `reference_prices.yaml`: si el anuncio es "iPhone 17", fuera "Pro", "Max", "17e"...). Con ≥ 5
 similares, referencia = mediana; confianza = `0,9 · min(1, n/15) · clamp(1 − IQR/mediana)`.
 Con menos, se usa la tabla. `price_check` en la respuesta dice siempre con qué se comparó.
+**Réplicas:** si el producto de la tabla es `replica_prone` (AirPods, Apple Watch, zapatillas), el
+anuncio está nuevo o como nuevo y la mediana de los similares es < 50 % de la tabla
+(`min_ratio_to_table`), los similares son réplicas y manda la tabla (un precintado auténtico no
+cuesta eso). No se aplica a productos que no se copian: un mando de PS5 busca mandos baratos.
+`normalize` convierte los ordinales (ª, º) en espacios para que "AirPods Pro 2ª" sea "airpods pro 2".
 
 **Estado del producto:** un artículo gastado puede ser barato con razón. La extensión envía el
 estado tal como lo muestra la plataforma (`condition`: "Sin abrir", "Como nuevo", "Muy bueno"…),

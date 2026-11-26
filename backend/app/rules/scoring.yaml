@@ -24,6 +24,7 @@ signals:           # risk signals: points = weight * intensity * confidence
       min_count: 5           # fewer similar listings -> reference table instead
       full_count: 15         # similar listings for full confidence
       max_confidence: 0.9    # times (1 - IQR / median): scattered prices are trusted less
+      min_ratio_to_table: 0.5 # median below this share of the table price: replicas, use the table
     condition_factors:       # price intensity multiplier: worn items can be cheap for a reason
       nuevo: 1.0
       como_nuevo: 1.0

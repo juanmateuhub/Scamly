@@ -199,18 +199,22 @@ products:
     category: audio
     price_eur: 140
     aliases: [airpods pro 2, airpods pro segunda generacion]
+    replica_prone: true    # sealed and far below the table: replicas, not a bargain
   - name: AirPods 4
     category: audio
     price_eur: 90
     aliases: [airpods 4]
+    replica_prone: true
   - name: AirPods Max
     category: audio
     price_eur: 320
     aliases: [airpods max]
+    replica_prone: true
   - name: Apple Watch Ultra 2
     category: relojes
     price_eur: 500
     aliases: [apple watch ultra 2, watch ultra 2]
+    replica_prone: true
   - name: MacBook Air M3
     category: informatica
     price_eur: 750
@@ -229,17 +233,21 @@ products:
     category: zapatillas
     price_eur: 90
     aliases: [dunk low]
+    replica_prone: true
   - name: Air Jordan 1
     category: zapatillas
     price_eur: 150
     aliases: [jordan 1, air jordan 1]
+    replica_prone: true
   - name: Adidas Samba
     category: zapatillas
     price_eur: 60
     aliases: [adidas samba]
+    replica_prone: true
   - name: New Balance 550
     category: zapatillas
     price_eur: 60
     aliases: [new balance 550]
+    replica_prone: true
 
 categories: {}         # fallback average per category (confidence 0.6); empty for now

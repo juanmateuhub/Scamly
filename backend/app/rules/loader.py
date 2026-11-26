@@ -44,6 +44,9 @@ class ComparablesConfig(_Rules):
     min_count: Annotated[int, Field(ge=1)]  # fewer similar listings -> use the reference table
     full_count: Positive  # similar listings needed for full confidence
     max_confidence: Unit  # live listings may include scams and variants: never fully trusted
+    # For a replica-prone product sold new, a live median this far below the table price means
+    # the search is full of replicas: the table is used instead.
+    min_ratio_to_table: Unit
 
 
 class PriceConfig(_Rules):
@@ -241,6 +244,8 @@ class ReferenceProduct(_Rules):
     price_eur: Positive
     aliases: Annotated[list[str], Field(min_length=1)]
     exclude: list[str] = []
+    # Widely copied (AirPods, sneakers): searches return replicas at replica prices.
+    replica_prone: bool = False
 
 
 class ReferencePrices(_Rules):
