@@ -107,8 +107,8 @@ Detalle en [`docs/architecture.md`](docs/architecture.md).
 
 ## Métricas
 
-Sobre un dataset propio de 106 anuncios **sintéticos** (54 sospechosos, 52 legítimos), con los
-umbrales calibrados en `dev` (74) y las métricas en `test` (32), positivo = rojo:
+Sobre un dataset propio de 115 anuncios **sintéticos** (60 sospechosos, 55 legítimos), con los
+umbrales calibrados en `dev` (83) y las métricas en `test` (32), positivo = rojo:
 
 | Modo | Precisión | Recall | F1 |
 |---|---|---|---|
@@ -125,15 +125,23 @@ ni estado del producto. Para eso está el split `real` (ver abajo).
 Reproducir: `python scripts/evaluate.py [--llm] --split test -v`.
 
 **Anuncios reales** (split `real`, 66 anuncios anonimizados de Wallapop y Vinted, 2026-11-26;
-etiquetas propuestas por Claude sin verificar, 9 dudosos sin etiquetar): solo reglas, positivo =
-rojo, precisión 1,00 y recall 0,50 (2 de 4 sospechosos; 4 de 4 contando amarillo), sin falsas
-alarmas (53 de 53 legítimos en verde). La primera medición dio recall 0,25: se escapaban "solo
-paypal" / "el pago no se realiza con vinted", "AirPods Pro 2ª" (el ordinal impedía reconocer el
-modelo) y réplicas comparadas con similares que también eran réplicas. Esos tipos de fallo se
-corrigieron con casos inventados en `dev` (`s055`–`s057`, `l053`–`l054`), no ajustando sobre
+59 legítimos y 7 sospechosos, etiquetas propuestas por Claude sin verificar, 3 de ellas de
+confianza baja), positivo = rojo:
+
+| Modo | Precisión | Recall | F1 |
+|---|---|---|---|
+| Solo reglas | 1,00 | 0,43 | 0,60 |
+| Reglas + LLM (`qwen/qwen3.8-27b` en Groq) | 1,00 | 0,57 | 0,73 |
+
+Ningún legítimo llega a rojo (2 de 59 en amarillo). Se escapan los 3 sospechosos de confianza baja:
+dos iPhone un 35 % por debajo de lo habitual con vendedor sin valoraciones y un vendedor con media
+de 1,9. La primera medición dio recall 0,25: se escapaban "solo paypal" / "el pago no se realiza
+con vinted", "AirPods Pro 2ª" (el ordinal impedía reconocer el modelo), réplicas comparadas con
+similares que también eran réplicas y un iPhone nuevo a precio de usado. Esos tipos de fallo se
+corrigieron con casos inventados en `dev` (`s055`–`s059`, `l053`–`l056`), no ajustando sobre
 `real`, pero conocer los fallos ya resta independencia a este split; un primer intento de la regla
 de réplicas daba 3 falsas alarmas en `real` (accesorios de PS5) y se acotó por ello.
-`python scripts/evaluate.py --split real -v`.
+`python scripts/evaluate.py --split real [--llm] -v`.
 
 ## Decisiones técnicas
 
