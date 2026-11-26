@@ -124,6 +124,14 @@ mismo autor; dos fallos del split `test` (`s018` y `s030`) se usaron para genera
 ni estado del producto. Para eso está el split `real` (ver abajo).
 Reproducir: `python scripts/evaluate.py [--llm] --split test -v`.
 
+**Anuncios reales** (split `real`, 66 anuncios anonimizados de Wallapop y Vinted, 2026-11-26;
+etiquetas propuestas por Claude sin verificar, 9 dudosos sin etiquetar): solo reglas, positivo =
+rojo, precisión 1,00 y recall 0,25 (1 de 4 sospechosos; 2 de 4 contando amarillo). Ningún
+legítimo da falsa alarma (53 de 53 en verde), pero se escapan casos que los sintéticos no tenían:
+"solo paypal" y "el pago no se realiza con vinted", "AirPods Pro 2ª" (el ordinal impide reconocer
+el modelo) y réplicas a precio de réplica cuando los similares también lo son. Este split no se usa
+para ajustar reglas. `python scripts/evaluate.py --split real -v`.
+
 ## Decisiones técnicas
 
 - **El LLM nunca decide la nota.** Solo clasifica el texto en cuatro señales y devuelve JSON
