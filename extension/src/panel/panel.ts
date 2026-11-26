@@ -15,7 +15,7 @@ async function extractFromActiveTab(): Promise<ExtractResult> {
       target: { tabId: tab.id },
       func: () => globalThis.__scamlyExtract?.(),
     });
-    return (injection?.result as ExtractResult | undefined) ?? { ok: false, error: MESSAGES.noData };
+    return injection?.result ?? { ok: false, error: MESSAGES.noData };
   } catch {
     // Chrome refuses to inject into its own pages (chrome://, the Web Store...).
     return { ok: false, error: MESSAGES.notListing };
