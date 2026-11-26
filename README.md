@@ -107,8 +107,8 @@ Detalle en [`docs/architecture.md`](docs/architecture.md).
 
 ## Métricas
 
-Sobre un dataset propio de 100 anuncios **sintéticos** (50 sospechosos, 50 legítimos), con los
-umbrales calibrados en `dev` (68) y las métricas en `test` (32), positivo = rojo:
+Sobre un dataset propio de 106 anuncios **sintéticos** (54 sospechosos, 52 legítimos), con los
+umbrales calibrados en `dev` (74) y las métricas en `test` (32), positivo = rojo:
 
 | Modo | Precisión | Recall | F1 |
 |---|---|---|---|

@@ -21,7 +21,7 @@ Unit = Annotated[float, Field(ge=0, le=1)]
 Weight = Annotated[float, Field(ge=0, le=100)]
 Positive = Annotated[float, Field(gt=0)]
 
-TextSignalName = Literal["pago_fuera_app", "contacto_externo", "urgencia"]
+TextSignalName = Literal["pago_fuera_app", "contacto_externo", "urgencia", "solo_foto"]
 # Ordered from best to worst.
 ConditionLevel = Literal["nuevo", "como_nuevo", "buen_estado", "aceptable", "danado"]
 CONDITION_ORDER: tuple[ConditionLevel, ...] = (
@@ -146,6 +146,7 @@ class SignalsConfig(_Rules):
     pago_fuera_app: TextSignalConfig
     contacto_externo: TextSignalConfig
     urgencia: TextSignalConfig
+    solo_foto: TextSignalConfig
     texto_generico: LlmOnlySignalConfig
 
     def text_weights(self) -> dict[TextSignalName, TextSignalConfig]:
@@ -153,6 +154,7 @@ class SignalsConfig(_Rules):
             "pago_fuera_app": self.pago_fuera_app,
             "contacto_externo": self.contacto_externo,
             "urgencia": self.urgencia,
+            "solo_foto": self.solo_foto,
         }
 
 
@@ -193,6 +195,7 @@ class ScoringConfig(_Rules):
                 s.pago_fuera_app,
                 s.contacto_externo,
                 s.urgencia,
+                s.solo_foto,
                 s.texto_generico,
             )
         )

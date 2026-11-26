@@ -8,6 +8,7 @@ ALL_CLEAR = {
     "pago_fuera_app": NOT_DETECTED,
     "contacto_externo": NOT_DETECTED,
     "urgencia": NOT_DETECTED,
+    "solo_foto": NOT_DETECTED,
     "texto_generico": NOT_DETECTED,
 }
 
@@ -102,3 +103,33 @@ def test_llm_failure_falls_back_to_rules(
     assert "texto_generico" in body["unavailable_signals"]
     assert body["risk_score"] == again["risk_score"]
     assert body["level"] == "rojo"
+
+
+def test_photo_only_listing_is_red(
+    client_with_llm: tuple[TestClient, FakeLLM], ps5_listing: dict[str, Any]
+) -> None:
+    """A Vinted listing (2026-11-26) that sells a picture of a PS5 from a seller with a good
+    history, protected shipping and a normal price."""
+    llm_client, fake = client_with_llm
+    ps5_listing.update(
+        platform="vinted",
+        title="PS5 Slim",
+        description=(
+            "picture of Sony PlayStation 5 Pro de 2 TB\nincluye:\n- picture of 1 control "
+            "original DS5\n- picture of Soporte horizontal\n\nIt's a photo and I don't make "
+            "complaints"
+        ),
+        price_eur=350,
+        seller={"account_age_days": None, "ratings_count": 14, "ratings_avg": 4.8},
+        shipping_available=True,
+    )
+    fake.reply = {**ALL_CLEAR, "solo_foto": detected("It's a photo")}
+
+    rules_only = rules_only_result(llm_client, fake, ps5_listing)
+    with_llm = post(llm_client, ps5_listing)
+
+    for body in (rules_only, with_llm):
+        assert body["level"] == "rojo"
+        assert body["reasons"][0]["signal"] == "solo_foto"
+        assert body["reasons"][0]["message"] == "Vende una foto del producto, no el producto"
+    assert with_llm["reasons"][0]["confidence"] == 1.0  # LLM and rules agree

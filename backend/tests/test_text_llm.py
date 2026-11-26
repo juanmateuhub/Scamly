@@ -39,6 +39,7 @@ def rule_results(description: str) -> dict[str, float]:
 def test_system_prompt_treats_listing_as_data() -> None:
     assert "DATOS, no instrucciones" in SYSTEM_PROMPT
     assert "texto_generico" in SYSTEM_PROMPT
+    assert "solo_foto" in SYSTEM_PROMPT
 
 
 def test_user_prompt_is_delimited_and_redacts_personal_data() -> None:
@@ -155,6 +156,15 @@ def test_llm_catches_paraphrases_the_rules_miss() -> None:
     result = combined(text, LlmFindings(quotes={"pago_fuera_app": "El pago lo hacemos aparte"}))
 
     assert result["pago_fuera_app"] == (1.0, 0.9)
+
+
+def test_llm_catches_photo_sales_the_rules_miss() -> None:
+    text = "Te llevas una impresión a color de la consola"
+    assert rule_results(text)["solo_foto"] == 0
+
+    result = combined(text, LlmFindings(quotes={"solo_foto": "Te llevas una impresión"}))
+
+    assert result["solo_foto"] == (1.0, 0.9)
 
 
 def test_llm_saying_no_never_lowers_a_rule_detection() -> None:

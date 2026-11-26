@@ -63,9 +63,21 @@ signals:
       strength: 0.6
     - pattern: '\b(?:me mudo|por mudanza)\b'
       strength: 0.3
+  solo_foto:          # the listing sells a picture of the item, not the item
+    - pattern: '\b(?:es|solo es|esto es) (?:solo )?una (?:foto|fotografia|imagen)\b'
+      strength: 1.0
+    - pattern: '\b(?:vendo|se vende|vende|compras|recibes|recibiras)(?: es)? (?:solo |unicamente )?(?:la |una )?(?:foto|fotografia|imagen)\b'
+      strength: 1.0
+    - pattern: "\\bit'?s (?:just |only )?(?:a|an) (?:photo|picture|image)\\b"
+      strength: 1.0
+    - pattern: '\b(?:picture|photo|image) of\b'   # English phrasing in a Spanish listing
+      strength: 0.8
 
 # A match is cancelled when one of these appears in the same clause (between punctuation).
 exemptions:
+  solo_foto:
+    # Real photos of the item, or a photo of the receipt, box or serial number.
+    - '\b(?:reale?s?|de referencia|mas fotos|factura|ticket|caja|embalaje|numero de serie|garantia)\b'
   pago_fuera_app:
     # Paying in person when collecting the item is not a payment outside the platform.
     - '\b(?:en mano|al recoger\w*|en persona|cuando (?:lo |la |los |las )?recoj\w+|al entregar\w*|en la entrega)\b'

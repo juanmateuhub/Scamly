@@ -52,6 +52,8 @@ signals:           # risk signals: points = weight * intensity * confidence
     weight: 25
   urgencia:
     weight: 10
+  solo_foto:                 # sells a picture of the item, not the item: red on its own
+    weight: 60
   texto_generico:            # LLM-only signal (phase 5)
     weight: 10
     confidence: 0.7

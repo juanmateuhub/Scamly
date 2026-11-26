@@ -21,7 +21,9 @@ from app.signals.base import SignalResult, normalize
 
 logger = logging.getLogger(__name__)
 
-LlmSignalName = Literal["pago_fuera_app", "contacto_externo", "urgencia", "texto_generico"]
+LlmSignalName = Literal[
+    "pago_fuera_app", "contacto_externo", "urgencia", "solo_foto", "texto_generico"
+]
 
 MIN_QUOTE_LENGTH = 3
 GENERIC_TEXT_MESSAGE = "La descripción no da detalles concretos"
@@ -39,6 +41,8 @@ recoger el producto en persona NO cuenta.
 - contacto_externo: intenta llevar la conversación fuera de la app (teléfono, email, \
 WhatsApp, Telegram, redes sociales).
 - urgencia: mete prisa para que el comprador no piense (viaje, "el primero que pague", "hoy mismo").
+- solo_foto: lo que se vende es una foto o imagen del producto, no el producto ("es una foto", \
+"picture of ..."). Las fotos reales del artículo que acompañan al anuncio NO cuentan.
 - texto_generico: la descripción no da NINGÚN dato concreto del producto (estado, uso, \
 medidas, accesorios, defectos, motivo de venta) o parece copiada. Una descripción breve \
 con algún dato concreto NO es genérica. Cita la frase vacía de la descripción, nunca el título.
@@ -50,6 +54,7 @@ Responde únicamente con JSON válido con esta forma exacta:
 {"pago_fuera_app": {"detectado": bool, "cita": str|null},
  "contacto_externo": {"detectado": bool, "cita": str|null},
  "urgencia": {"detectado": bool, "cita": str|null},
+ "solo_foto": {"detectado": bool, "cita": str|null},
  "texto_generico": {"detectado": bool, "cita": str|null}}"""
 
 _PHONE = re.compile(r"(?<!\d)(?:\+?34[\s.-]?)?[6789](?:[\s.-]?\d){8}(?!\d)")
@@ -71,6 +76,7 @@ class LlmOutput(BaseModel):
     pago_fuera_app: Detection = Detection()
     contacto_externo: Detection = Detection()
     urgencia: Detection = Detection()
+    solo_foto: Detection = Detection()
     texto_generico: Detection = Detection()
 
 

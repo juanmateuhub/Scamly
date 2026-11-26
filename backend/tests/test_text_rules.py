@@ -11,6 +11,7 @@ WEIGHTS: dict[TextSignalName, TextSignalConfig] = {
     "pago_fuera_app": TextSignalConfig(weight=40),
     "contacto_externo": TextSignalConfig(weight=25),
     "urgencia": TextSignalConfig(weight=10),
+    "solo_foto": TextSignalConfig(weight=60),
 }
 REGEX_CONFIDENCE = 0.8
 RULES = load_phrase_rules()
@@ -48,7 +49,7 @@ def test_combine_strengths_is_noisy_or(strengths: list[float], expected: float) 
 def test_returns_one_result_per_text_signal() -> None:
     results = analyze("")
 
-    assert set(results) == {"pago_fuera_app", "contacto_externo", "urgencia"}
+    assert set(results) == {"pago_fuera_app", "contacto_externo", "urgencia", "solo_foto"}
     assert all(r.intensity == 0 for r in results.values())
 
 
@@ -122,6 +123,54 @@ def test_urgency_is_detected(text: str) -> None:
     assert analyze(text)["urgencia"].intensity > 0
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        "It's a photo and I don't make complaints",
+        "Ojo: es una foto de la consola",
+        "Se vende la foto del iPhone",
+        "Lo que compras es la imagen",
+        "Vendo fotografía de PS5",
+    ],
+)
+def test_selling_a_photo_is_detected(text: str) -> None:
+    assert analyze(text)["solo_foto"].intensity == 1.0
+
+
+def test_picture_of_counts_less_than_an_explicit_photo_sale() -> None:
+    result = analyze("picture of Sony PlayStation 5 Pro de 2 TB")["solo_foto"]
+
+    assert result.intensity == 0.8
+    assert result.evidence == "picture of"
+
+
+def test_vinted_photo_listing_reaches_full_intensity() -> None:
+    """The real listing behind this signal (2026-11-26), with its phrases."""
+    text = (
+        "picture of Sony PlayStation 5 Pro de 2 TB\nincluye:\n- picture of 1 control original DS5"
+        "\n- picture of Enchufe de corriente\n\nIt's a photo and I don't make complaints"
+    )
+    result = analyze(text, title="PS5 Slim")["solo_foto"]
+
+    assert result.intensity == 1.0
+    assert result.points == pytest.approx(60 * 0.8)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Fotos reales del producto, no de internet",
+        "Es una foto real, hecha hoy",
+        "La última es una foto de la factura",
+        "Si quieres te mando más fotos",
+        "No es una foto de catálogo",
+        "Funciona perfectamente, adjunto fotos",
+    ],
+)
+def test_real_photos_are_not_a_photo_sale(text: str) -> None:
+    assert analyze(text)["solo_foto"].intensity == 0
+
+
 def test_title_is_analyzed_too() -> None:
     results = analyze("", title="iPhone 15 solo bizum")
 
@@ -135,7 +184,7 @@ def test_points_combine_weight_intensity_and_confidence() -> None:
 
 
 def test_shipped_phrase_rules_are_valid() -> None:
-    assert set(RULES.signals) == {"pago_fuera_app", "contacto_externo", "urgencia"}
+    assert set(RULES.signals) == {"pago_fuera_app", "contacto_externo", "urgencia", "solo_foto"}
     assert all(phrases for phrases in RULES.signals.values())
 
 
