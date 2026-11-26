@@ -93,6 +93,7 @@ aplica** y se registra como no disponible; nunca se inventa un valor.
 | Sin historial | `1 / (1 + (valoraciones + ventas) / 3)` | 1,0 | 10 | "El vendedor apenas tiene valoraciones" |
 | Malas valoraciones | `min(1, n/10) · clamp((3,5 − media) / 1,5)` | 1,0 | 20 | "El vendedor tiene malas valoraciones" |
 | Descripción pobre | lineal por palabras: 1 si ≤ 5, 0 si ≥ 30 | 1,0 | 15 | "La descripción es muy corta" |
+| Modelo distinto | 1 si la descripción nombra un modelo de la tabla más específico o superior que el del título (misma categoría; se saltan cláusulas como "me compré el…", "compatible", "funda") | 0,8 | 15 | "El título y la descripción hablan de modelos distintos" |
 | Pago fuera de la app | `1 − Π(1 − fuerza_frase)` sobre frases detectadas | LLM con cita verificada 0,9; regex 0,8; ambos 1,0 | 40 | "Pide pagar fuera de la plataforma, sin protección" |
 | Contacto externo | igual, con sus frases (teléfono, email, WhatsApp…) | igual | 25 | "Intenta llevar la conversación fuera de la app" |
 | Urgencia | igual ("me voy del país", "hoy mismo"…) | igual | 10 | "Mete prisa, táctica típica de estafa" |
